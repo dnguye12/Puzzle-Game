@@ -16,7 +16,7 @@ public class BoardModel {
     private Cell draggedCell;
 
     public enum Difficulty {
-        EASY(5), MEDIUM(2), HARD(9);
+        EASY(5), MEDIUM(7), HARD(9);
 
         private int value;
 
@@ -95,11 +95,31 @@ public class BoardModel {
         ArrayList<Point> helperPoint = new ArrayList<>();
 
         Dimension imageSize = this.getImageSize();
-        int cellCount = this.difficulty.getValue();
-        int cellWidth = imageSize.width / cellCount;
-        int cellHeight = imageSize.height / cellCount;
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        screenSize = new Dimension(screenSize.width - PADDING * 4, screenSize.height - PADDING * 7);
+        double ratioImage = 1.0 * imageSize.width / imageSize.height;
+        if(imageSize.width > screenSize.width) {
+            this.image = this.image.getScaledInstance(screenSize.width, (int) (screenSize.width / ratioImage), Image.SCALE_SMOOTH);
+            imageSize = this.getImageSize();
+        }
+        if(imageSize.height > screenSize.height) {
+            ratioImage = 1.0 * imageSize.width / imageSize.height;
+            this.image = this.image.getScaledInstance((int) (screenSize.height * ratioImage), screenSize.height, Image.SCALE_SMOOTH);
+            imageSize = this.getImageSize();
+        }
+        ratioImage = 1.0 * imageSize.width / imageSize.height;
 
-        this.image = this.image.getScaledInstance(cellWidth * cellCount, cellHeight * cellCount, Image.SCALE_SMOOTH);
+        int cellWidthCount = this.difficulty.getValue();
+        int cellHeightCount = (int) (cellWidthCount / ratioImage);
+        int cellWidth = imageSize.width / cellWidthCount;
+        int cellHeight = imageSize.height / cellHeightCount;
+        if(cellWidth > cellHeight) {
+            cellWidth = cellHeight;
+        }else if(cellHeight > cellWidth) {
+            cellHeight = cellWidth;
+        }
+
+        this.image = this.image.getScaledInstance(cellWidth * cellWidthCount, cellHeight * cellHeightCount, Image.SCALE_SMOOTH);
         BufferedImage bufferedImage = this.imageToBufferedImage(this.image);
 
         imageSize = this.getImageSize();
@@ -120,7 +140,9 @@ public class BoardModel {
         Collections.shuffle(helperImage);
 
         for (i = 0; i < helperImage.size(); i++) {
-            this.cells.add(new Cell(i, helperPoint.get(i), helperImage.get(i)));
+            Cell cell = new Cell(i, helperPoint.get(i), helperImage.get(i));
+            cell.setRotation(Cell.Rotation.getRandom());
+            this.cells.add(cell);
         }
     }
 

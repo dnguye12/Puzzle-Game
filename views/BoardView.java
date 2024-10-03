@@ -5,6 +5,10 @@ import models.Cell;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Arc2D;
+import java.awt.geom.Area;
+import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 
 public class BoardView extends JComponent {
@@ -12,10 +16,17 @@ public class BoardView extends JComponent {
     private final int PADDING = 20;
     private BoardModel model;
     private Image image;
+    private boolean isShowingDonutMenu;
+    private int hoveredSection;
+    private Point DonutMenuPos;
+    private int innerRadius;
+    private int outerRadius;
 
     public BoardView(BoardModel model) {
         this.model = model;
         this.image = this.model.getImage();
+        this.isShowingDonutMenu = false;
+        this.hoveredSection = -1;
 
         this.setFocusable(true);
         this.requestFocusInWindow();
@@ -27,6 +38,7 @@ public class BoardView extends JComponent {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2d.setColor(Color.BLUE);
         g2d.fillRect(0, 0, this.getWidth(), this.getHeight());
         int frameW = this.getWidth();
@@ -41,32 +53,28 @@ public class BoardView extends JComponent {
             Cell draggedCell = model.getDraggedCell();
             this.drawCell(g2d, draggedCell);
         }
+        if (this.isShowingDonutMenu) {
+            this.drawDonutMenu(g2d);
+        }
     }
 
     private void handleSize() {
         int width = 420;
         int height = 420;
+        Dimension helper = null;
+        int difValue = this.model.getDifficulty().getValue() - 1;
         if (this.image != null) {
-            Dimension helper = this.model.getImageSize();
+            helper = this.model.getImageSize();
 
-            int difValue = this.model.getDifficulty().getValue() - 1;
             width = (int) (helper.getWidth() + 2 * PADDING + difValue * GAP);
             height = (int) (helper.getHeight() + 2 * PADDING + difValue * GAP);
         }
         this.setPreferredSize(new Dimension(width, height));
-    }
 
-    private void drawImage(Graphics2D g2d, int frameW, int frameH) {
-        Dimension d = this.model.getImageSize();
-        int helperX = (int) ((frameW - d.getWidth()) / 2);
-        int helperY = (int) ((frameH - d.getHeight()) / 2);
-        Image image = this.model.getImage();
-
-        if (image != null) {
-            g2d.drawImage(image, helperX, helperY, this);
-        } else {
-            g2d.setColor(Color.WHITE);
-            g2d.fillRect(helperX, helperY, (int) d.getWidth(), (int) d.getHeight());
+        if (helper != null) {
+            int cellWidth = (int) (helper.getWidth() / difValue);
+            this.innerRadius = (int) Math.sqrt(cellWidth * cellWidth + cellWidth * cellWidth);
+            this.outerRadius = this.innerRadius + 100;
         }
     }
 
@@ -75,7 +83,91 @@ public class BoardView extends JComponent {
             g2d.setColor(Color.LIGHT_GRAY);
             g2d.fillRect(cell.getPos().x, cell.getPos().y, cell.getImage().getWidth(null), cell.getImage().getHeight(null));
         } else {
-            g2d.drawImage(cell.getImage(), cell.getPos().x, cell.getPos().y, null);
+            Cell.Rotation rotation = cell.getRotation();
+            AffineTransform oldTransform = g2d.getTransform();
+
+            double angle = Math.toRadians(rotation.getAngle());
+            int x = cell.getPos().x;
+            int y = cell.getPos().y;
+            int imageWidth = cell.getImage().getWidth(null);
+            int imageHeight = cell.getImage().getHeight(null);
+            int centerX = x + imageWidth / 2;
+            int centerY = y + imageHeight / 2;
+
+            AffineTransform transform = new AffineTransform();
+            transform.rotate(angle, centerX, centerY);
+            g2d.setTransform(transform);
+
+            g2d.drawImage(cell.getImage(), x, y, null);
+            g2d.setTransform(oldTransform);
         }
+    }
+
+    private void drawDonutMenu(Graphics2D g2d) {
+        for (int i = 0; i < 4; i++) {
+            this.drawDonutSection(g2d, i);
+        }
+    }
+
+    private void drawDonutSection(Graphics2D g2d, int section) {
+        double startAngle = 45 + 90 * section;
+        Arc2D.Double arc = new Arc2D.Double(DonutMenuPos.x - this.outerRadius / 2, DonutMenuPos.y - this.outerRadius / 2, this.outerRadius, this.outerRadius, startAngle, 90, Arc2D.PIE);
+        Ellipse2D innerCircle = new Ellipse2D.Double(
+                DonutMenuPos.x - innerRadius / 2,
+                DonutMenuPos.y - innerRadius / 2,
+                innerRadius, innerRadius);
+        Area area = new Area(arc);
+        area.subtract(new Area(innerCircle));
+
+        if (section == hoveredSection) {
+            g2d.setColor(new Color(255, 0, 0, 150));  // Highlight color with transparency
+        } else {
+            g2d.setColor(new Color(0, 0, 255, 150));  // Normal color with transparency
+        }
+        g2d.fill(area);
+    }
+
+    public boolean isShowingDonutMenu() {
+        return this.isShowingDonutMenu;
+    }
+
+    public void setShowingDonutMenu(boolean showingDonutMenu) {
+        this.isShowingDonutMenu = showingDonutMenu;
+    }
+
+    public void toggleShowingDonutMenu() {
+        this.isShowingDonutMenu = !this.isShowingDonutMenu;
+    }
+
+    public void setDonutMenuPos(Point donutMenuPos) {
+        DonutMenuPos = donutMenuPos;
+    }
+
+    public int getHoveredDonutSection(Point p) {
+        double x = p.getX() - (DonutMenuPos.x + outerRadius / 2);
+        double y = p.getY() - (DonutMenuPos.y + outerRadius / 2);
+        double distance = Math.sqrt(x * x + y * y);
+
+        // Check if the point is within the donut's area
+        if (distance < innerRadius / 2 || distance > outerRadius / 2) {
+            return -1; // Not hovering over the donut
+        }
+
+        // Calculate the angle of the point relative to the center
+        double angle = Math.toDegrees(Math.atan2(-y, x)) - 45;
+        if (angle < 0) {
+            angle += 360;
+        }
+
+        // Determine which section is hovered based on the angle
+        return (int) (angle / 90);
+    }
+
+    public int getHoveredSection() {
+        return hoveredSection;
+    }
+
+    public void setHoveredSection(int hoveredSection) {
+        this.hoveredSection = hoveredSection;
     }
 }

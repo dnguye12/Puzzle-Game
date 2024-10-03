@@ -30,21 +30,44 @@ public class BoardController {
         this.view.addMouseListener(new MouseAdapter() {
 
             @Override
-            public void mouseReleased(MouseEvent e) {
+            public void mousePressed(MouseEvent e) {
                 Cell selectedCell = model.getSelectedCell();
-                if (selectedCell != null) {
-                    selectedCell.setSelected(false);
-                    Cell other = model.clickOnCell(e.getPoint());
-                    model.replaceCell(selectedCell, other);
+                if(selectedCell != null && e.getButton() == MouseEvent.BUTTON3) {
+                    selectedCell.setRotation(selectedCell.getRotation().next());
+                    Cell draggedCell = model.getDraggedCell();
+                    if(draggedCell != null) {
+                        draggedCell.setRotation(draggedCell.getRotation().next());
+                    }
+                    view.revalidate();
+                    view.repaint();
                 }
-                model.setSelectedCell(null);
-                model.setDraggedCell(null);
-                isDragging = false;
-                view.revalidate();
-                view.repaint();
+                if(e.getButton() == MouseEvent.BUTTON2) {
+                    view.setDonutMenuPos(e.getPoint());
+                    view.toggleShowingDonutMenu();
+                    view.revalidate();
+                    view.repaint();
+                }
+            }
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if(e.getButton() == MouseEvent.BUTTON1) {
+                    Cell selectedCell = model.getSelectedCell();
+                    if (selectedCell != null) {
+                        selectedCell.setSelected(false);
+                        Cell other = model.clickOnCell(e.getPoint());
+                        if (other != null) {
+                            model.replaceCell(selectedCell, other);
+                        }
+                    }
+                    model.setSelectedCell(null);
+                    model.setDraggedCell(null);
+                    isDragging = false;
+                    view.revalidate();
+                    view.repaint();
 
-                if(model.endGame()) {
-                    System.out.println("end");
+                    if (model.endGame()) {
+                        System.out.println("end");
+                    }
                 }
             }
         });
@@ -68,6 +91,7 @@ public class BoardController {
                         selectedCell.setSelected(true);
                         Cell draggedCell = new Cell(selectedCell);
                         draggedCell.setPos(new Point(helper.x - OFFSET, helper.y - OFFSET));
+                        draggedCell.setRotation(selectedCell.getRotation());
                         model.setSelectedCell(selectedCell);
                         model.setDraggedCell(draggedCell);
                         isDragging = true;
@@ -75,8 +99,15 @@ public class BoardController {
                         view.repaint();
                     }
                 }
+            }
 
-
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                if(view.isShowingDonutMenu()) {
+                    view.setHoveredSection(view.getHoveredDonutSection(e.getPoint()));
+                    view.revalidate();
+                    view.repaint();
+                }
             }
         });
     }
