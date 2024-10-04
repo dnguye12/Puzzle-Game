@@ -191,9 +191,10 @@ public class BoardModel {
         other.setPos(currentPos);
         int currentIdx = current.getIdx();
         int otherIdx = other.getIdx();
-        this.cells.set(currentIdx, other);
-        this.cells.set(otherIdx, current);
         other.setIdx(currentIdx);
         current.setIdx(otherIdx);
+        this.cells.set(currentIdx, other);
+        this.cells.set(otherIdx, current);
+
     }
 }

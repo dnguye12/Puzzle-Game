@@ -21,6 +21,8 @@ public class BoardView extends JComponent {
     private Point DonutMenuPos;
     private int innerRadius;
     private int outerRadius;
+    private final int ARROWLENGTH = 30;
+    private final int ARROWHEAD = 20;
 
     public BoardView(BoardModel model) {
         this.model = model;
@@ -51,7 +53,9 @@ public class BoardView extends JComponent {
 
         if (model.getSelectedCell() != null) {
             Cell draggedCell = model.getDraggedCell();
-            this.drawCell(g2d, draggedCell);
+            if(draggedCell != null) {
+                this.drawCell(g2d, draggedCell);
+            }
         }
         if (this.isShowingDonutMenu) {
             this.drawDonutMenu(g2d);
@@ -79,27 +83,30 @@ public class BoardView extends JComponent {
     }
 
     private void drawCell(Graphics2D g2d, Cell cell) {
-        if (cell.isSelected()) {
+        if (cell.isSelected() && cell.isDragged()) {
+
             g2d.setColor(Color.LIGHT_GRAY);
             g2d.fillRect(cell.getPos().x, cell.getPos().y, cell.getImage().getWidth(null), cell.getImage().getHeight(null));
+
+
         } else {
-            Cell.Rotation rotation = cell.getRotation();
-            AffineTransform oldTransform = g2d.getTransform();
+        Cell.Rotation rotation = cell.getRotation();
+        AffineTransform oldTransform = g2d.getTransform();
 
-            double angle = Math.toRadians(rotation.getAngle());
-            int x = cell.getPos().x;
-            int y = cell.getPos().y;
-            int imageWidth = cell.getImage().getWidth(null);
-            int imageHeight = cell.getImage().getHeight(null);
-            int centerX = x + imageWidth / 2;
-            int centerY = y + imageHeight / 2;
+        double angle = Math.toRadians(rotation.getAngle());
+        int x = cell.getPos().x;
+        int y = cell.getPos().y;
+        int imageWidth = cell.getImage().getWidth(null);
+        int imageHeight = cell.getImage().getHeight(null);
+        int centerX = x + imageWidth / 2;
+        int centerY = y + imageHeight / 2;
 
-            AffineTransform transform = new AffineTransform();
-            transform.rotate(angle, centerX, centerY);
-            g2d.setTransform(transform);
+        AffineTransform transform = new AffineTransform();
+        transform.rotate(angle, centerX, centerY);
+        g2d.setTransform(transform);
 
-            g2d.drawImage(cell.getImage(), x, y, null);
-            g2d.setTransform(oldTransform);
+        g2d.drawImage(cell.getImage(), x, y, null);
+        g2d.setTransform(oldTransform);
         }
     }
 
@@ -110,21 +117,36 @@ public class BoardView extends JComponent {
     }
 
     private void drawDonutSection(Graphics2D g2d, int section) {
-        double startAngle = 45 + 90 * section;
-        Arc2D.Double arc = new Arc2D.Double(DonutMenuPos.x - this.outerRadius / 2, DonutMenuPos.y - this.outerRadius / 2, this.outerRadius, this.outerRadius, startAngle, 90, Arc2D.PIE);
+        double startAngle = 45 + 90 * section + 1;
+        Arc2D.Double arc = new Arc2D.Double(DonutMenuPos.x - this.outerRadius / 2.0, DonutMenuPos.y - this.outerRadius / 2.0, this.outerRadius, this.outerRadius, startAngle, 88, Arc2D.PIE);
         Ellipse2D innerCircle = new Ellipse2D.Double(
-                DonutMenuPos.x - innerRadius / 2,
-                DonutMenuPos.y - innerRadius / 2,
+                DonutMenuPos.x - innerRadius / 2.0,
+                DonutMenuPos.y - innerRadius / 2.0,
                 innerRadius, innerRadius);
         Area area = new Area(arc);
         area.subtract(new Area(innerCircle));
 
         if (section == hoveredSection) {
-            g2d.setColor(new Color(255, 0, 0, 150));  // Highlight color with transparency
+            g2d.setColor(new Color(255, 0, 0, 150));
         } else {
-            g2d.setColor(new Color(0, 0, 255, 150));  // Normal color with transparency
+            g2d.setColor(new Color(0, 0, 255, 150));
         }
         g2d.fill(area);
+
+        double angleRad = Math.toRadians(90 * section + 90 / 2.0 + 45);
+
+        int endX = (int) (DonutMenuPos.x + (innerRadius / 2 + ARROWLENGTH) * Math.cos(angleRad));
+        int endY = (int) (DonutMenuPos.y + (innerRadius / 2 + ARROWLENGTH) * Math.sin(angleRad));
+
+        g2d.setColor(Color.BLACK);
+
+        Polygon arrowHead = new Polygon();
+        arrowHead.addPoint(endX, endY);
+        arrowHead.addPoint((int) (endX - ARROWHEAD * Math.cos(angleRad - Math.PI / 6)),
+                (int) (endY - ARROWHEAD * Math.sin(angleRad - Math.PI / 6)));
+        arrowHead.addPoint((int) (endX - ARROWHEAD * Math.cos(angleRad + Math.PI / 6)),
+                (int) (endY - ARROWHEAD * Math.sin(angleRad + Math.PI / 6)));
+        g2d.fill(arrowHead);
     }
 
     public boolean isShowingDonutMenu() {
@@ -144,22 +166,17 @@ public class BoardView extends JComponent {
     }
 
     public int getHoveredDonutSection(Point p) {
-        double x = p.getX() - (DonutMenuPos.x + outerRadius / 2);
-        double y = p.getY() - (DonutMenuPos.y + outerRadius / 2);
+        double x = p.getX() - DonutMenuPos.x;
+        double y = p.getY() - DonutMenuPos.y;
         double distance = Math.sqrt(x * x + y * y);
 
-        // Check if the point is within the donut's area
-        if (distance < innerRadius / 2 || distance > outerRadius / 2) {
-            return -1; // Not hovering over the donut
+        if (distance < innerRadius / 2.0 || distance > outerRadius / 2.0) {
+            return -1;
         }
-
-        // Calculate the angle of the point relative to the center
         double angle = Math.toDegrees(Math.atan2(-y, x)) - 45;
         if (angle < 0) {
             angle += 360;
         }
-
-        // Determine which section is hovered based on the angle
         return (int) (angle / 90);
     }
 
