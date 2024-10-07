@@ -1,5 +1,6 @@
 package views;
 
+import controllers.AnimationController;
 import models.BoardModel;
 import models.Cell;
 
@@ -23,6 +24,7 @@ public class BoardView extends JComponent {
     private int outerRadius;
     private final int ARROWLENGTH = 30;
     private final int ARROWHEAD = 20;
+    private AnimationController animationController;
 
     public BoardView(BoardModel model) {
         this.model = model;
@@ -53,12 +55,17 @@ public class BoardView extends JComponent {
 
         if (model.getSelectedCell() != null) {
             Cell draggedCell = model.getDraggedCell();
-            if(draggedCell != null) {
+            if (draggedCell != null) {
                 this.drawCell(g2d, draggedCell);
             }
         }
         if (this.isShowingDonutMenu) {
             this.drawDonutMenu(g2d);
+        }
+
+        int scalingIdx = this.animationController.getScalingIdx();
+        if(scalingIdx != -1) {
+            this.drawScalingCell(g2d, cells, scalingIdx);
         }
     }
 
@@ -83,33 +90,49 @@ public class BoardView extends JComponent {
     }
 
     private void drawCell(Graphics2D g2d, Cell cell) {
-        if (cell.isSelected() && cell.isDragged()) {
+        if (!cell.isSelected()) {
 
-            g2d.setColor(Color.LIGHT_GRAY);
-            g2d.fillRect(cell.getPos().x, cell.getPos().y, cell.getImage().getWidth(null), cell.getImage().getHeight(null));
+            Cell.Rotation rotation = cell.getRotation();
+            AffineTransform oldTransform = g2d.getTransform();
 
+            double angle = Math.toRadians(rotation.getAngle());
+            int x = cell.getPos().x;
+            int y = cell.getPos().y;
+            int imageWidth = cell.getImage().getWidth(null);
+            int imageHeight = cell.getImage().getHeight(null);
+            int centerX = x + imageWidth / 2;
+            int centerY = y + imageHeight / 2;
 
-        } else {
-        Cell.Rotation rotation = cell.getRotation();
-        AffineTransform oldTransform = g2d.getTransform();
+            AffineTransform transform = new AffineTransform();
+            transform.rotate(angle, centerX, centerY);
+            g2d.setTransform(transform);
 
-        double angle = Math.toRadians(rotation.getAngle());
-        int x = cell.getPos().x;
-        int y = cell.getPos().y;
-        int imageWidth = cell.getImage().getWidth(null);
-        int imageHeight = cell.getImage().getHeight(null);
-        int centerX = x + imageWidth / 2;
-        int centerY = y + imageHeight / 2;
-
-        AffineTransform transform = new AffineTransform();
-        transform.rotate(angle, centerX, centerY);
-        g2d.setTransform(transform);
-
-        g2d.drawImage(cell.getImage(), x, y, null);
-        g2d.setTransform(oldTransform);
+            g2d.drawImage(cell.getImage(), x, y, null);
+            g2d.setTransform(oldTransform);
         }
     }
 
+    private void drawScalingCell(Graphics2D g2d, ArrayList<Cell> cells, int idx) {
+        Cell cell = cells.get(idx);
+        AffineTransform old = g2d.getTransform();
+        Image img = cell.getImage();
+        Point pos = cell.getPos();
+        double scaleFactor = this.animationController.getScalingFactor();
+        Cell.Rotation rotation = cell.getRotation();
+        double angle = Math.toRadians(rotation.getAngle());
+
+        g2d.translate(pos.x + img.getWidth(null) / 2, pos.y + img.getHeight(null) / 2);
+        g2d.rotate(angle);
+        g2d.scale(scaleFactor, scaleFactor);
+        g2d.translate(-img.getWidth(null) / 2, -img.getHeight(null) / 2);
+
+        int shadowOffset = 5;
+        g2d.setColor(new Color(0,0,0,60));
+        g2d.fillRect(-shadowOffset, -shadowOffset, img.getWidth(null) + shadowOffset * 2, img.getHeight(null) + shadowOffset * 2);
+
+        g2d.drawImage(img, 0, 0, this);
+        g2d.setTransform(old);
+    }
     private void drawDonutMenu(Graphics2D g2d) {
         for (int i = 0; i < 4; i++) {
             this.drawDonutSection(g2d, i);
@@ -186,5 +209,9 @@ public class BoardView extends JComponent {
 
     public void setHoveredSection(int hoveredSection) {
         this.hoveredSection = hoveredSection;
+    }
+
+    public void setAnimationController(AnimationController con) {
+        this.animationController = con;
     }
 }
