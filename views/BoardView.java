@@ -50,13 +50,15 @@ public class BoardView extends JComponent {
 
         ArrayList<Cell> cells = this.model.getCells();
         for (Cell cell : cells) {
-            this.drawCell(g2d, cell);
+            if(cell.getIdx() != animationController.getRotatingIdx()) {
+                this.drawCell(g2d, cell);
+            }
         }
 
         if (model.getSelectedCell() != null) {
             Cell draggedCell = model.getDraggedCell();
             if (draggedCell != null) {
-                this.drawCell(g2d, draggedCell);
+                this.drawDraggedCell(g2d, draggedCell);
             }
         }
         if (this.isShowingDonutMenu) {
@@ -64,8 +66,15 @@ public class BoardView extends JComponent {
         }
 
         int scalingIdx = this.animationController.getScalingIdx();
+        int rotatingIdx = this.animationController.getRotatingIdx();
         if(scalingIdx != -1) {
-            this.drawScalingCell(g2d, cells, scalingIdx);
+            if(model.getDraggedCell() == null) {
+                if(rotatingIdx != scalingIdx) {
+                    this.drawScalingCell(g2d, cells.get(scalingIdx));
+                }else {
+                    this.drawRotatingCell(g2d, cells.get(rotatingIdx));
+                }
+            }
         }
     }
 
@@ -112,14 +121,52 @@ public class BoardView extends JComponent {
         }
     }
 
-    private void drawScalingCell(Graphics2D g2d, ArrayList<Cell> cells, int idx) {
-        Cell cell = cells.get(idx);
+    private void drawDraggedCell(Graphics2D g2d, Cell cell) {
         AffineTransform old = g2d.getTransform();
         Image img = cell.getImage();
         Point pos = cell.getPos();
         double scaleFactor = this.animationController.getScalingFactor();
         Cell.Rotation rotation = cell.getRotation();
         double angle = Math.toRadians(rotation.getAngle());
+
+        g2d.translate(pos.x + img.getWidth(null) / 2, pos.y + img.getHeight(null) / 2);
+        g2d.rotate(angle);
+        g2d.scale(scaleFactor, scaleFactor);
+        g2d.translate(-img.getWidth(null) / 2, -img.getHeight(null) / 2);
+
+        int shadowOffset = 5;
+        g2d.setColor(new Color(0,0,0,60));
+        g2d.fillRect(-shadowOffset, -shadowOffset, img.getWidth(null) + shadowOffset * 2, img.getHeight(null) + shadowOffset * 2);
+
+        g2d.drawImage(img, 0, 0, this);
+        g2d.setTransform(old);
+    }
+    private void drawScalingCell(Graphics2D g2d, Cell cell) {
+        AffineTransform old = g2d.getTransform();
+        Image img = cell.getImage();
+        Point pos = cell.getPos();
+        double scaleFactor = this.animationController.getScalingFactor();
+        Cell.Rotation rotation = cell.getRotation();
+        double angle = Math.toRadians(rotation.getAngle());
+
+        g2d.translate(pos.x + img.getWidth(null) / 2, pos.y + img.getHeight(null) / 2);
+        g2d.rotate(angle);
+        g2d.scale(scaleFactor, scaleFactor);
+        g2d.translate(-img.getWidth(null) / 2, -img.getHeight(null) / 2);
+
+        int shadowOffset = 5;
+        g2d.setColor(new Color(0,0,0,60));
+        g2d.fillRect(-shadowOffset, -shadowOffset, img.getWidth(null) + shadowOffset * 2, img.getHeight(null) + shadowOffset * 2);
+
+        g2d.drawImage(img, 0, 0, this);
+        g2d.setTransform(old);
+    }
+    private void drawRotatingCell(Graphics2D g2d, Cell cell) {
+        AffineTransform old = g2d.getTransform();
+        Image img = cell.getImage();
+        Point pos = cell.getPos();
+        double scaleFactor = this.animationController.getScalingFactor();
+        double angle = Math.toRadians(animationController.getRotatingFactor());
 
         g2d.translate(pos.x + img.getWidth(null) / 2, pos.y + img.getHeight(null) / 2);
         g2d.rotate(angle);

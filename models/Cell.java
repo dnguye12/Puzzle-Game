@@ -154,6 +154,11 @@ public class Cell {
         isDragged = draggeed;
     }
 
+    public void moveCell(Point step) {
+        this.pos.x += step.x;
+        this.pos.y += step.y;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {

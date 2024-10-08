@@ -9,7 +9,6 @@ import java.awt.*;
 import java.awt.event.*;
 
 public class BoardController {
-    private final int OFFSET = 5;
     private BoardModel model;
     private BoardView view;
     private AnimationController animationController;
@@ -30,100 +29,133 @@ public class BoardController {
         return this.view;
     }
 
+    private void resetTimer() {
+        for (ActionListener listener : timer.getActionListeners()) {
+            timer.removeActionListener(listener);
+        }
+    }
+
     private void setupListeners() {
         this.view.addMouseListener(new MouseAdapter() {
 
             @Override
             public void mousePressed(MouseEvent e) {
                 Cell selectedCell = model.getSelectedCell();
-                if (e.getButton() == MouseEvent.BUTTON1) {
-                    for (ActionListener listener : timer.getActionListeners()) {
-                        timer.removeActionListener(listener);
-                    }
-                    if (selectedCell == null) {
-                        Cell helper = model.clickOnCell(e.getPoint());
-                        if (helper != null) {
-                            timer.addActionListener(new ActionListener() {
-                                @Override
-                                public void actionPerformed(ActionEvent e) {
-                                    if (!animationController.isScaling()) {
-                                        helper.setSelected(true);
-                                        model.setSelectedCell(helper);
-                                        animationController.setScalingIdx(helper.getIdx());
-                                        animationController.startScaling(true);
-                                        timer.stop();
-                                    }
-                                }
-                            });
-                        }
-                    } else {
-                        Cell other = model.clickOnCell(e.getPoint());
-                        if (other != null) {
-                            animationController.startScaling(false);
-                            timer.addActionListener(new ActionListener() {
-                                @Override
-                                public void actionPerformed(ActionEvent e) {
-
-                                    if (!animationController.isScaling()) {
-                                        if (other.isSelected()) {
-                                            selectedCell.setSelected(false);
-                                            animationController.setScalingIdx(-1);
-                                            timer.stop();
-                                        } else {
-                                            selectedCell.setSelected(false);
-                                            other.setSelected(true);
-                                            model.setSelectedCell(other);
-                                            animationController.setScalingIdx(other.getIdx());
+                if (!animationController.isAnimating()) {
+                    if (e.getButton() == MouseEvent.BUTTON1) {
+                        resetTimer();
+                        if (selectedCell == null) {
+                            Cell helper = model.clickOnCell(e.getPoint());
+                            if (helper != null) {
+                                timer.addActionListener(new ActionListener() {
+                                    @Override
+                                    public void actionPerformed(ActionEvent e) {
+                                        if (!animationController.isScaling()) {
+                                            helper.setSelected(true);
+                                            model.setSelectedCell(helper);
+                                            animationController.setScalingIdx(helper.getIdx());
                                             animationController.startScaling(true);
                                             timer.stop();
+                                            view.revalidate();
+                                            view.repaint();
                                         }
+                                    }
+                                });
+                            }
+                        } else {
+                            Cell other = model.clickOnCell(e.getPoint());
+                            if (other != null) {
+
+                                if (!other.isSelected()) {
+                                    animationController.startScaling(false);
+                                    timer.addActionListener(new ActionListener() {
+                                        @Override
+                                        public void actionPerformed(ActionEvent e) {
+                                            if (!animationController.isScaling()) {
+                                                selectedCell.setSelected(false);
+                                                other.setSelected(true);
+                                                model.setSelectedCell(other);
+                                                animationController.setScalingIdx(other.getIdx());
+                                                animationController.startScaling(true);
+                                                timer.stop();
+                                                view.revalidate();
+                                                view.repaint();
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                        timer.start();
+                    }
+
+                    if (e.getButton() == MouseEvent.BUTTON2 && selectedCell != null) {
+                        Point helper = selectedCell.getPos();
+                        helper = new Point(helper);
+                        helper.x += selectedCell.getImage().getWidth(null) / 2;
+                        helper.y += selectedCell.getImage().getHeight(null) / 2;
+                        view.setDonutMenuPos(helper);
+                        view.toggleShowingDonutMenu();
+                        view.revalidate();
+                        view.repaint();
+                    }
+
+                    if (e.getButton() == MouseEvent.BUTTON3 && selectedCell != null) {
+                        Cell other = model.clickOnCell(e.getPoint());
+                        if (other != null) {
+                            resetTimer();
+                            animationController.setSwapingCells(selectedCell, other);
+                            animationController.startSwaping();
+
+                            timer.addActionListener(new ActionListener() {
+                                @Override
+                                public void actionPerformed(ActionEvent e) {
+                                    if (!animationController.isSwaping()) {
+                                        selectedCell.setSelected(false);
+                                        model.replaceCell(selectedCell, other);
+                                        model.setSelectedCell(null);
+                                        model.setDraggedCell(null);
+                                        animationController.setScalingIdx(-1);
+                                        timer.stop();
+                                        view.revalidate();
+                                        view.repaint();
                                     }
                                 }
                             });
+                            timer.start();
                         }
-
-                    }
-                    timer.start();
-                    view.revalidate();
-                    view.repaint();
-                }
-
-                if (e.getButton() == MouseEvent.BUTTON2 && selectedCell != null) {
-                    Point helper = selectedCell.getPos();
-                    helper = new Point(helper);
-                    helper.x += selectedCell.getImage().getWidth(null) / 2;
-                    helper.y += selectedCell.getImage().getHeight(null) / 2;
-                    view.setDonutMenuPos(helper);
-                    view.toggleShowingDonutMenu();
-                    view.revalidate();
-                    view.repaint();
-                }
-
-
-                if (e.getButton() == MouseEvent.BUTTON3 && selectedCell != null) {
-                    Cell other = model.clickOnCell(e.getPoint());
-                    if (other != null) {
-                        selectedCell.setSelected(false);
-                        model.replaceCell(selectedCell, other);
-                        model.setSelectedCell(null);
-                        view.revalidate();
-                        view.repaint();
                     }
                 }
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                if (e.getButton() == MouseEvent.BUTTON1) {
-                    if (isDragging) {
-                        isDragging = false;
-                        Cell draggedCell = model.getSelectedCell();
-                        draggedCell.setDragged(false);
-                        Cell targetedCell = model.clickOnCell(e.getPoint());
-                        if (targetedCell != null) {
-                            model.replaceCell(draggedCell, targetedCell);
+                if (!animationController.isAnimating()) {
+                    if (e.getButton() == MouseEvent.BUTTON1) {
+                        if (isDragging) {
+                            resetTimer();
+                            isDragging = false;
+                            Cell draggedCell = model.getSelectedCell();
+                            Cell targetedCell = model.clickOnCell(e.getPoint());
+                            if (targetedCell != null) {
+                                model.replaceCell(draggedCell, targetedCell);
+                                Point helper = new Point(draggedCell.getPos());
+                                draggedCell.setPos(targetedCell.getPos());
+                                targetedCell.setPos(helper);
+                            }
+                            draggedCell.setDragged(false);
+                            draggedCell.setSelected(false);
+                            model.setDraggedCell(null);
+                            model.setSelectedCell(null);
+                            animationController.setScalingIdx(-1);
+                            view.revalidate();
+                            view.repaint();
                         }
-                        model.setDraggedCell(null);
+                    }
+                }
+                if (e.getButton() != MouseEvent.BUTTON2) {
+                    if (view.isShowingDonutMenu()) {
+                        view.setShowingDonutMenu(false);
                         view.revalidate();
                         view.repaint();
                     }
@@ -134,24 +166,28 @@ public class BoardController {
         this.view.addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                Point helper = e.getPoint();
-                if (!isDragging) {
-                    Cell clickedCell = model.clickOnCell(helper);
-                    if (clickedCell != null && clickedCell.isSelected()) {
-                        Cell draggedCell = new Cell(clickedCell);
-                        draggedCell.setDragged(true);
-                        draggedCell.setPos(new Point(helper.x + OFFSET, helper.y + OFFSET));
+                if (!animationController.isAnimating() && SwingUtilities.isLeftMouseButton(e)) {
+                    Point helper = e.getPoint();
+                    resetTimer();
+                    if (!isDragging) {
+                        Cell clickedCell = model.clickOnCell(helper);
+                        if (clickedCell != null && clickedCell.isSelected()) {
+                            Cell draggedCell = new Cell(clickedCell);
+                            Image img = draggedCell.getImage();
+                            draggedCell.setDragged(true);
+                            draggedCell.setPos(new Point(helper.x - img.getWidth(null) / 2, helper.y - img.getHeight(null) / 2));
+                            model.setDraggedCell(draggedCell);
+                            isDragging = true;
+                        }
+                    } else {
+                        Cell draggedCell = model.getDraggedCell();
+                        Image img = draggedCell.getImage();
+                        draggedCell.setPos(new Point(helper.x - img.getWidth(null) / 2, helper.y - img.getHeight(null) / 2));
                         model.setDraggedCell(draggedCell);
-                        isDragging = true;
                     }
-                } else {
-                    Cell draggedCell = model.getDraggedCell();
-                    draggedCell.setPos(new Point(helper.x + OFFSET, helper.y + OFFSET));
-                    model.setDraggedCell(draggedCell);
+                    view.revalidate();
+                    view.repaint();
                 }
-                view.revalidate();
-                view.repaint();
-
             }
 
             @Override
@@ -175,17 +211,40 @@ public class BoardController {
         this.view.addMouseWheelListener(new MouseWheelListener() {
             @Override
             public void mouseWheelMoved(MouseWheelEvent e) {
-                if (!isDragging) {
+                if (!isDragging && !animationController.isAnimating()) {
                     Cell selectedCell = model.getSelectedCell();
                     if (selectedCell != null) {
                         int notch = e.getWheelRotation();
+                        resetTimer();
                         if (notch < 0) {
-                            selectedCell.setRotation(selectedCell.getRotation().back());
+                            animationController.startRotating(selectedCell, false);
+                            timer.addActionListener(new ActionListener() {
+                                @Override
+                                public void actionPerformed(ActionEvent e) {
+                                    if (!animationController.isRotating()) {
+                                        selectedCell.setRotation(selectedCell.getRotation().back());
+                                        timer.stop();
+                                        view.revalidate();
+                                        view.repaint();
+                                    }
+                                }
+                            });
+                            timer.start();
                         } else {
-                            selectedCell.setRotation(selectedCell.getRotation().next());
+                            animationController.startRotating(selectedCell, true);
+                            timer.addActionListener(new ActionListener() {
+                                @Override
+                                public void actionPerformed(ActionEvent e) {
+                                    if (!animationController.isRotating()) {
+                                        selectedCell.setRotation(selectedCell.getRotation().next());
+                                        timer.stop();
+                                        view.revalidate();
+                                        view.repaint();
+                                    }
+                                }
+                            });
+                            timer.start();
                         }
-                        view.revalidate();
-                        view.repaint();
                     }
                 }
             }

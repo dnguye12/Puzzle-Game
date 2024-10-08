@@ -185,16 +185,11 @@ public class BoardModel {
     }
 
     public void replaceCell(Cell current, Cell other) {
-        Point currentPos = current.getPos();
-        Point otherPos = other.getPos();
-        current.setPos(otherPos);
-        other.setPos(currentPos);
         int currentIdx = current.getIdx();
         int otherIdx = other.getIdx();
         other.setIdx(currentIdx);
         current.setIdx(otherIdx);
         this.cells.set(currentIdx, other);
         this.cells.set(otherIdx, current);
-
     }
 }
