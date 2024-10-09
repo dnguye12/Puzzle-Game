@@ -31,11 +31,11 @@ public class BoardView extends JComponent {
         this.image = this.model.getImage();
         this.isShowingDonutMenu = false;
         this.hoveredSection = -1;
-
+        this.handleSize();
         this.setFocusable(true);
         this.requestFocusInWindow();
 
-        this.handleSize();
+
     }
 
     @Override
@@ -45,8 +45,6 @@ public class BoardView extends JComponent {
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2d.setColor(Color.BLUE);
         g2d.fillRect(0, 0, this.getWidth(), this.getHeight());
-        int frameW = this.getWidth();
-        int frameH = this.getHeight();
 
         ArrayList<Cell> cells = this.model.getCells();
         for (Cell cell : cells) {
@@ -89,13 +87,15 @@ public class BoardView extends JComponent {
             width = (int) (helper.getWidth() + 2 * PADDING + difValue * GAP);
             height = (int) (helper.getHeight() + 2 * PADDING + difValue * GAP);
         }
-        this.setPreferredSize(new Dimension(width, height));
 
         if (helper != null) {
             int cellWidth = (int) (helper.getWidth() / difValue);
             this.innerRadius = (int) Math.sqrt(cellWidth * cellWidth + cellWidth * cellWidth);
             this.outerRadius = this.innerRadius + 100;
         }
+        this.setPreferredSize(new Dimension(width, height));
+        this.revalidate();
+        this.repaint();
     }
 
     private void drawCell(Graphics2D g2d, Cell cell) {

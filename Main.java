@@ -1,9 +1,13 @@
 import controllers.BoardController;
+import views.Window;
+
 import javax.swing.*;
 import java.awt.*;
 
 public class Main {
     public static void main(String[] args) {
+        Window win = new Window();
+        /*
         JFrame test = new JFrame();
         test.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -13,6 +17,6 @@ public class Main {
 
         test.pack();
         test.setLocationRelativeTo(null);
-        test.setVisible(true);
+        test.setVisible(true);*/
     }
 }
