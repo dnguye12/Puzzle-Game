@@ -11,7 +11,7 @@ import java.io.*;
 
 public class Menubar extends JMenuBar {
     public enum Difficulty {
-        EASY(5), MEDIUM(7), HARD(9), CUSTOM(0);
+        EASY(5), MEDIUM(2), HARD(9), CUSTOM(0);
 
         private int value;
 

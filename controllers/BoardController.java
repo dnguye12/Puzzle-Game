@@ -61,6 +61,11 @@ public class BoardController {
             timer.removeActionListener(listener);
         }
     }
+    private void checkEnd() {
+        if(this.model.endGame()) {
+            System.out.println("end");
+        }
+    }
 
     private void setupListeners() {
         this.view.addMouseListener(new MouseAdapter() {
@@ -164,6 +169,7 @@ public class BoardController {
                                             timer.stop();
                                             view.revalidate();
                                             view.repaint();
+                                            checkEnd();
                                         }
                                     }
                                 });
@@ -196,6 +202,7 @@ public class BoardController {
                             animationController.setScalingIdx(-1);
                             view.revalidate();
                             view.repaint();
+                            checkEnd();
                         }
                     }
                 }
@@ -250,6 +257,7 @@ public class BoardController {
                     }
                     view.revalidate();
                     view.repaint();
+                    checkEnd();
                 }
             }
         });
@@ -272,6 +280,7 @@ public class BoardController {
                                         timer.stop();
                                         view.revalidate();
                                         view.repaint();
+                                        checkEnd();
                                     }
                                 }
                             });
@@ -286,6 +295,7 @@ public class BoardController {
                                         timer.stop();
                                         view.revalidate();
                                         view.repaint();
+                                        checkEnd();
                                     }
                                 }
                             });
@@ -363,6 +373,7 @@ public class BoardController {
                                                 timer.stop();
                                                 view.revalidate();
                                                 view.repaint();
+                                                checkEnd();
                                             }
                                         }
                                     });
@@ -400,6 +411,7 @@ public class BoardController {
                                         timer.stop();
                                         view.revalidate();
                                         view.repaint();
+                                        checkEnd();
                                     }
                                 }
                             });
@@ -420,6 +432,7 @@ public class BoardController {
                                         timer.stop();
                                         view.revalidate();
                                         view.repaint();
+                                        checkEnd();
                                     }
                                 }
                             });

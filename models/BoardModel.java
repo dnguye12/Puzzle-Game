@@ -153,7 +153,7 @@ public class BoardModel {
         Cell helper;
         for (int i = 0; i < this.cells.size(); i++) {
             helper = this.cells.get(i);
-            if (helper.getRotation() != Cell.Rotation.NORTH && helper.getImage() != this.correctImages.get(i)) {
+            if (helper.getRotation() != Cell.Rotation.NORTH || helper.getImage() != this.correctImages.get(i)) {
                 return false;
             }
         }
