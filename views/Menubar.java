@@ -10,8 +10,28 @@ import javax.imageio.*;
 import java.io.*;
 
 public class Menubar extends JMenuBar {
+    public enum Difficulty {
+        EASY(5), MEDIUM(7), HARD(9), CUSTOM(0);
+
+        private int value;
+
+        Difficulty(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return this.value;
+        }
+
+        public void setValue(int n) {
+            this.value = n;
+        }
+    }
+
+    ; //5x5, 7x7, 9x9
     private Window window;
     private String selectedImagePath; // Variable to store the selected image path
+    private Difficulty difficultyLevel;
 
     public Menubar(Window window) {
         this.window = window;
@@ -182,14 +202,21 @@ public class Menubar extends JMenuBar {
                 errorLabel.setText("");
 
                 // Handle custom difficulty input
-                if (difficulty.equals("Custom")) {
+                if (difficulty.equals("Easy")) {
+                    difficultyLevel = Difficulty.EASY;
+                } else if (difficulty.equals("Medium")) {
+                    difficultyLevel = Difficulty.MEDIUM;
+                } else if (difficulty.equals("Hard")) {
+                    difficultyLevel = Difficulty.HARD;
+                } else if (difficulty.equals("Custom")) {
                     String customDifficulty = customDifficultyField.getText();
                     if (customDifficulty.isEmpty()) {
                         errorLabel.setText("Please enter a custom difficulty!");
                         return;
                     } else {
                         try {
-                            Integer.parseInt(customDifficulty);
+                            difficultyLevel = Difficulty.CUSTOM;
+                            difficultyLevel.setValue(Integer.parseInt(customDifficulty));
                         } catch (NumberFormatException ex) {
                             errorLabel.setText("Custom difficulty must be a number!");
                             return;
@@ -259,6 +286,10 @@ public class Menubar extends JMenuBar {
 
     public String getSelectedImagePath() {
         return this.selectedImagePath;
+    }
+
+    public Difficulty getDifficultyLevel() {
+        return this.difficultyLevel;
     }
 
     // DocumentFilter to allow only numeric input

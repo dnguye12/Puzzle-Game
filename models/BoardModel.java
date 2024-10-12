@@ -1,5 +1,7 @@
 package models;
 
+import views.Menubar;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -10,32 +12,18 @@ import java.util.Collections;
 import java.util.Objects;
 
 public class BoardModel {
-    private final int PADDING = 20;
+    private final int PADDING = 50;
     private final int GAP = 2;
     private Cell selectedCell;
     private Cell draggedCell;
-
-    public enum Difficulty {
-        EASY(5), MEDIUM(7), HARD(9);
-
-        private int value;
-
-        Difficulty(int value) {
-            this.value = value;
-        }
-
-        public int getValue() {
-            return this.value;
-        }
-    }
-
-    ; //5x5, 7x7, 9x9
     private Image image;
     private ArrayList<Cell> cells;
     private ArrayList<Image> correctImages;
-    private Difficulty difficulty;
+    private Menubar.Difficulty difficulty;
+    private int cellWidthCount;
+    private int cellHeightCount;
 
-    public BoardModel(String path) {
+    public BoardModel(String path, Menubar.Difficulty difficulty) {
         if (!Objects.equals(path, "")) {
             try {
                 this.image = ImageIO.read(new File(path));
@@ -43,7 +31,7 @@ public class BoardModel {
                 e.printStackTrace();
             }
         }
-        this.difficulty = Difficulty.MEDIUM;
+        this.difficulty = difficulty;
         this.initCells();
     }
 
@@ -51,16 +39,8 @@ public class BoardModel {
         return this.image;
     }
 
-    public void setDifficulty(Difficulty difficulty) {
-        this.difficulty = difficulty;
-    }
-
     public ArrayList<Cell> getCells() {
         return this.cells;
-    }
-
-    public Difficulty getDifficulty() {
-        return this.difficulty;
     }
 
     public void setSelectedCell(Cell selectedCell) {
@@ -79,12 +59,24 @@ public class BoardModel {
         return draggedCell;
     }
 
+    public int getCellWidthCount() {
+        return cellWidthCount;
+    }
+
+    public int getCellHeightCount() {
+        return cellHeightCount;
+    }
+
     public Dimension getImageSize() {
         if (this.image != null) {
             return new Dimension(this.image.getWidth(null), this.image.getHeight(null));
         } else {
             return new Dimension(420, 420);
         }
+    }
+
+    public Menubar.Difficulty getDifficulty() {
+        return difficulty;
     }
 
     private void initCells() {
@@ -96,7 +88,7 @@ public class BoardModel {
 
         Dimension imageSize = this.getImageSize();
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        screenSize = new Dimension(screenSize.width - PADDING * 4, screenSize.height - PADDING * 7);
+        screenSize = new Dimension(screenSize.width - PADDING * 2, screenSize.height - PADDING * 2);
         double ratioImage = 1.0 * imageSize.width / imageSize.height;
         if(imageSize.width > screenSize.width) {
             this.image = this.image.getScaledInstance(screenSize.width, (int) (screenSize.width / ratioImage), Image.SCALE_SMOOTH);
@@ -109,17 +101,17 @@ public class BoardModel {
         }
         ratioImage = 1.0 * imageSize.width / imageSize.height;
 
-        int cellWidthCount = this.difficulty.getValue();
-        int cellHeightCount = (int) (cellWidthCount / ratioImage);
-        int cellWidth = imageSize.width / cellWidthCount;
-        int cellHeight = imageSize.height / cellHeightCount;
+        this.cellWidthCount = this.difficulty.getValue();
+        this.cellHeightCount = (int) (this.cellWidthCount / ratioImage);
+        int cellWidth = imageSize.width / this.cellWidthCount;
+        int cellHeight = imageSize.height / this.cellHeightCount;
         if(cellWidth > cellHeight) {
             cellWidth = cellHeight;
         }else if(cellHeight > cellWidth) {
             cellHeight = cellWidth;
         }
 
-        this.image = this.image.getScaledInstance(cellWidth * cellWidthCount, cellHeight * cellHeightCount, Image.SCALE_SMOOTH);
+        this.image = this.image.getScaledInstance(cellWidth * this.cellWidthCount, cellHeight * this.cellHeightCount, Image.SCALE_SMOOTH);
         BufferedImage bufferedImage = this.imageToBufferedImage(this.image);
 
         imageSize = this.getImageSize();
@@ -158,8 +150,10 @@ public class BoardModel {
     }
 
     public boolean endGame() {
+        Cell helper;
         for (int i = 0; i < this.cells.size(); i++) {
-            if (this.cells.get(i).getImage() != this.correctImages.get(i)) {
+            helper = this.cells.get(i);
+            if (helper.getRotation() != Cell.Rotation.NORTH && helper.getImage() != this.correctImages.get(i)) {
                 return false;
             }
         }

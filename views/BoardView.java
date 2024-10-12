@@ -1,6 +1,7 @@
 package views;
 
 import controllers.AnimationController;
+import controllers.BoardController;
 import models.BoardModel;
 import models.Cell;
 
@@ -14,7 +15,8 @@ import java.util.ArrayList;
 
 public class BoardView extends JComponent {
     private final int GAP = 2;
-    private final int PADDING = 20;
+    private final int PADDING = 50;
+    private BoardController con;
     private BoardModel model;
     private Image image;
     private boolean isShowingDonutMenu;
@@ -26,16 +28,15 @@ public class BoardView extends JComponent {
     private final int ARROWHEAD = 20;
     private AnimationController animationController;
 
-    public BoardView(BoardModel model) {
-        this.model = model;
+    public BoardView(BoardController con) {
+        this.con = con;
+        this.model = con.getModel();
         this.image = this.model.getImage();
         this.isShowingDonutMenu = false;
         this.hoveredSection = -1;
         this.handleSize();
         this.setFocusable(true);
         this.requestFocusInWindow();
-
-
     }
 
     @Override
@@ -43,14 +44,18 @@ public class BoardView extends JComponent {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2d.setColor(Color.BLUE);
-        g2d.fillRect(0, 0, this.getWidth(), this.getHeight());
+        this.drawBackground(g2d);
 
         ArrayList<Cell> cells = this.model.getCells();
+
         for (Cell cell : cells) {
-            if(cell.getIdx() != animationController.getRotatingIdx()) {
+            if (cell.getIdx() != animationController.getRotatingIdx()) {
                 this.drawCell(g2d, cell);
             }
+        }
+
+        if(this.con.isKeyboardMode()) {
+            this.drawKeyboardSelection(g2d, cells.get(0));
         }
 
         if (model.getSelectedCell() != null) {
@@ -59,20 +64,21 @@ public class BoardView extends JComponent {
                 this.drawDraggedCell(g2d, draggedCell);
             }
         }
-        if (this.isShowingDonutMenu) {
-            this.drawDonutMenu(g2d);
-        }
 
         int scalingIdx = this.animationController.getScalingIdx();
         int rotatingIdx = this.animationController.getRotatingIdx();
-        if(scalingIdx != -1) {
-            if(model.getDraggedCell() == null) {
-                if(rotatingIdx != scalingIdx) {
+        if (scalingIdx != -1) {
+            if (model.getDraggedCell() == null) {
+                if (rotatingIdx != scalingIdx) {
                     this.drawScalingCell(g2d, cells.get(scalingIdx));
-                }else {
+                } else {
                     this.drawRotatingCell(g2d, cells.get(rotatingIdx));
                 }
             }
+        }
+
+        if (this.isShowingDonutMenu) {
+            this.drawDonutMenu(g2d);
         }
     }
 
@@ -90,12 +96,46 @@ public class BoardView extends JComponent {
 
         if (helper != null) {
             int cellWidth = (int) (helper.getWidth() / difValue);
-            this.innerRadius = (int) Math.sqrt(cellWidth * cellWidth + cellWidth * cellWidth);
-            this.outerRadius = this.innerRadius + 100;
+            this.innerRadius = cellWidth - 20;
+            this.outerRadius = this.innerRadius + 80;
         }
         this.setPreferredSize(new Dimension(width, height));
         this.revalidate();
         this.repaint();
+    }
+
+    private void drawBackground(Graphics2D g2d) {
+        int frameW = this.getWidth();
+        int frameH = this.getHeight();
+        g2d.setColor(Color.LIGHT_GRAY);
+
+        for (int x = 0; x < frameW; x += 20) {
+            g2d.drawLine(x, 0, x, frameH);
+        }
+        g2d.drawLine(frameW, 0, frameW, frameH);
+        for (int y = 0; y < frameH; y += 20) {
+            g2d.drawLine(0, y, frameW, y);
+        }
+        g2d.drawLine(0, frameH, frameW, frameH);
+    }
+
+    private void drawKeyboardSelection(Graphics2D g2d, Cell helper) {
+
+        int width = helper.getImage().getWidth(null);
+        int height = helper.getImage().getHeight(null);
+
+        int row = con.getKeyboardRow();
+        int col = con.getKeyboardCol();
+        int posX = PADDING, posY = PADDING;
+        if(row > 0) {
+            posX = PADDING + row * width + row * GAP;
+        }
+        if(col > 0) {
+            posY = PADDING + col * height + col * GAP;
+        }
+
+        g2d.setColor(new Color(255,0,0,50));
+        g2d.fillRect(posX , posY , width, height);
     }
 
     private void drawCell(Graphics2D g2d, Cell cell) {
@@ -135,12 +175,13 @@ public class BoardView extends JComponent {
         g2d.translate(-img.getWidth(null) / 2, -img.getHeight(null) / 2);
 
         int shadowOffset = 5;
-        g2d.setColor(new Color(0,0,0,60));
+        g2d.setColor(new Color(0, 0, 0, 60));
         g2d.fillRect(-shadowOffset, -shadowOffset, img.getWidth(null) + shadowOffset * 2, img.getHeight(null) + shadowOffset * 2);
 
         g2d.drawImage(img, 0, 0, this);
         g2d.setTransform(old);
     }
+
     private void drawScalingCell(Graphics2D g2d, Cell cell) {
         AffineTransform old = g2d.getTransform();
         Image img = cell.getImage();
@@ -155,12 +196,13 @@ public class BoardView extends JComponent {
         g2d.translate(-img.getWidth(null) / 2, -img.getHeight(null) / 2);
 
         int shadowOffset = 5;
-        g2d.setColor(new Color(0,0,0,60));
+        g2d.setColor(new Color(0, 0, 0, 60));
         g2d.fillRect(-shadowOffset, -shadowOffset, img.getWidth(null) + shadowOffset * 2, img.getHeight(null) + shadowOffset * 2);
 
         g2d.drawImage(img, 0, 0, this);
         g2d.setTransform(old);
     }
+
     private void drawRotatingCell(Graphics2D g2d, Cell cell) {
         AffineTransform old = g2d.getTransform();
         Image img = cell.getImage();
@@ -174,12 +216,13 @@ public class BoardView extends JComponent {
         g2d.translate(-img.getWidth(null) / 2, -img.getHeight(null) / 2);
 
         int shadowOffset = 5;
-        g2d.setColor(new Color(0,0,0,60));
+        g2d.setColor(new Color(0, 0, 0, 60));
         g2d.fillRect(-shadowOffset, -shadowOffset, img.getWidth(null) + shadowOffset * 2, img.getHeight(null) + shadowOffset * 2);
 
         g2d.drawImage(img, 0, 0, this);
         g2d.setTransform(old);
     }
+
     private void drawDonutMenu(Graphics2D g2d) {
         for (int i = 0; i < 4; i++) {
             this.drawDonutSection(g2d, i);

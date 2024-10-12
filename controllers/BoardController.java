@@ -3,6 +3,7 @@ package controllers;
 import models.BoardModel;
 import models.Cell;
 import views.BoardView;
+import views.Menubar;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,19 +15,45 @@ public class BoardController {
     private AnimationController animationController;
     private Timer timer;
     private boolean isDragging;
+    private boolean keyboardMode;
+    private int keyboardCol;
+    private int keyboardRow;
 
-    public BoardController(String imagePath) {
-        this.model = new BoardModel(imagePath);
-        this.view = new BoardView(this.model);
+    public BoardController(String imagePath, Menubar.Difficulty difficulty) {
+        this.model = new BoardModel(imagePath, difficulty);
+        this.view = new BoardView(this);
         this.animationController = new AnimationController(this.view);
         this.timer = new Timer(0, null);
         this.view.setAnimationController(this.animationController);
         this.isDragging = false;
+        this.keyboardMode = false;
+        this.keyboardCol = 0;
+        this.keyboardRow = 0;
         this.setupListeners();
     }
 
     public BoardView getView() {
         return this.view;
+    }
+
+    public BoardModel getModel() {
+        return this.model;
+    }
+
+    public boolean isKeyboardMode() {
+        return keyboardMode;
+    }
+
+    public int getKeyboardCol() {
+        return keyboardCol;
+    }
+
+    public int getKeyboardRow() {
+        return keyboardRow;
+    }
+
+    public int selectKeyboard() {
+        return this.model.getCellWidthCount() * this.keyboardRow + this.keyboardCol;
     }
 
     private void resetTimer() {
@@ -104,25 +131,44 @@ public class BoardController {
                         Cell other = model.clickOnCell(e.getPoint());
                         if (other != null) {
                             resetTimer();
-                            animationController.setSwapingCells(selectedCell, other);
-                            animationController.startSwaping();
-
-                            timer.addActionListener(new ActionListener() {
-                                @Override
-                                public void actionPerformed(ActionEvent e) {
-                                    if (!animationController.isSwaping()) {
-                                        selectedCell.setSelected(false);
-                                        model.replaceCell(selectedCell, other);
-                                        model.setSelectedCell(null);
-                                        model.setDraggedCell(null);
-                                        animationController.setScalingIdx(-1);
-                                        timer.stop();
-                                        view.revalidate();
-                                        view.repaint();
+                            if (other.isSelected()) {
+                                animationController.startScaling(false);
+                                timer.addActionListener(new ActionListener() {
+                                    @Override
+                                    public void actionPerformed(ActionEvent e) {
+                                        if (!animationController.isScaling()) {
+                                            selectedCell.setSelected(false);
+                                            model.setSelectedCell(null);
+                                            model.setDraggedCell(null);
+                                            animationController.setScalingIdx(-1);
+                                            timer.stop();
+                                            view.revalidate();
+                                            view.repaint();
+                                        }
                                     }
-                                }
-                            });
-                            timer.start();
+                                });
+                                timer.start();
+                            } else {
+                                animationController.setSwapingCells(selectedCell, other);
+                                animationController.startSwaping();
+
+                                timer.addActionListener(new ActionListener() {
+                                    @Override
+                                    public void actionPerformed(ActionEvent e) {
+                                        if (!animationController.isSwaping()) {
+                                            selectedCell.setSelected(false);
+                                            model.replaceCell(selectedCell, other);
+                                            model.setSelectedCell(null);
+                                            model.setDraggedCell(null);
+                                            animationController.setScalingIdx(-1);
+                                            timer.stop();
+                                            view.revalidate();
+                                            view.repaint();
+                                        }
+                                    }
+                                });
+                                timer.start();
+                            }
                         }
                     }
                 }
@@ -248,6 +294,154 @@ public class BoardController {
                     }
                 }
             }
+        });
+
+        this.view.addKeyListener(new KeyListener() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+                    keyboardMode = !keyboardMode;
+                }
+
+                if (keyboardMode) {
+                    if (e.getKeyCode() == KeyEvent.VK_UP) {
+                        if (keyboardCol > 0) {
+                            keyboardCol--;
+                        }
+                    }
+                    if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+                        if (keyboardCol < model.getCellHeightCount() - 1) {
+                            keyboardCol++;
+                        }
+                    }
+                    if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+                        if (keyboardRow > 0) {
+                            keyboardRow--;
+                        }
+                    }
+                    if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+                        if (keyboardRow < model.getCellWidthCount() - 1) {
+                            keyboardRow++;
+                        }
+                    }
+                    if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+                        if(!animationController.isAnimating()) {
+                            int idx = selectKeyboard();
+                            Cell selectedCell = model.getSelectedCell();
+                            Cell other = model.getCells().get(idx);
+                            resetTimer();
+                            if (selectedCell != null) {
+                                if(other.isSelected()) {
+                                    animationController.startScaling(false);
+                                    timer.addActionListener(new ActionListener() {
+                                        @Override
+                                        public void actionPerformed(ActionEvent e) {
+                                            if (!animationController.isScaling()) {
+                                                selectedCell.setSelected(false);
+                                                model.setSelectedCell(null);
+                                                model.setDraggedCell(null);
+                                                animationController.setScalingIdx(-1);
+                                                timer.stop();
+                                                view.revalidate();
+                                                view.repaint();
+                                            }
+                                        }
+                                    });
+                                }else {
+                                    animationController.setSwapingCells(selectedCell, other);
+                                    animationController.startSwaping();
+
+                                    timer.addActionListener(new ActionListener() {
+                                        @Override
+                                        public void actionPerformed(ActionEvent e) {
+                                            if(!animationController.isSwaping()) {
+                                                selectedCell.setSelected(false);
+                                                model.replaceCell(selectedCell, other);
+                                                model.setSelectedCell(null);
+                                                model.setDraggedCell(null);
+                                                animationController.setScalingIdx(-1);
+                                                timer.stop();
+                                                view.revalidate();
+                                                view.repaint();
+                                            }
+                                        }
+                                    });
+                                }
+                            } else {
+                                timer.addActionListener(new ActionListener() {
+                                    @Override
+                                    public void actionPerformed(ActionEvent e) {
+                                        if(!animationController.isScaling()) {
+                                            other.setSelected(true);
+                                            model.setSelectedCell(other);
+                                            animationController.setScalingIdx(idx);
+                                            animationController.startScaling(true);
+                                            timer.stop();
+                                            view.revalidate();
+                                            view.repaint();
+                                        }
+                                    }
+                                });
+                            }
+                            timer.start();
+                        }
+                    }
+                    if(e.getKeyCode() == KeyEvent.VK_E) {
+                        int idx = selectKeyboard();
+                        Cell other = model.getCells().get(idx);
+                        if(other.isSelected()) {
+                            resetTimer();
+                            animationController.startRotating(other, true);
+                            timer.addActionListener(new ActionListener() {
+                                @Override
+                                public void actionPerformed(ActionEvent e) {
+                                    if (!animationController.isRotating()) {
+                                        other.setRotation(other.getRotation().next());
+                                        timer.stop();
+                                        view.revalidate();
+                                        view.repaint();
+                                    }
+                                }
+                            });
+                            timer.start();
+                        }
+                    }
+                    if(e.getKeyCode() == KeyEvent.VK_A || e.getKeyCode() == KeyEvent.VK_Q) {
+                        int idx = selectKeyboard();
+                        Cell other = model.getCells().get(idx);
+                        if(other.isSelected()) {
+                            resetTimer();
+                            animationController.startRotating(other, false);
+                            timer.addActionListener(new ActionListener() {
+                                @Override
+                                public void actionPerformed(ActionEvent e) {
+                                    if (!animationController.isRotating()) {
+                                        other.setRotation(other.getRotation().back());
+                                        timer.stop();
+                                        view.revalidate();
+                                        view.repaint();
+                                    }
+                                }
+                            });
+                            timer.start();
+                        }
+                    }
+                }
+                view.revalidate();
+                view.repaint();
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+
+
+            }
+
+            @Override
+            public void keyTyped(KeyEvent e) {
+
+            }
+
         });
     }
 }

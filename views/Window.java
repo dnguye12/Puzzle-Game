@@ -26,7 +26,7 @@ public class Window extends JFrame {
     }
 
     public void initBoardController() {
-        this.boardController = new BoardController(this.menu.getSelectedImagePath());
+        this.boardController = new BoardController(this.menu.getSelectedImagePath(), this.menu.getDifficultyLevel());
         BoardView view = this.boardController.getView();
 
         Dimension menuSize = this.menu.getPreferredSize();
