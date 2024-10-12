@@ -18,6 +18,7 @@ public class BoardController {
     private boolean keyboardMode;
     private int keyboardCol;
     private int keyboardRow;
+    private int moveCount;
 
     public BoardController(String imagePath, Menubar.Difficulty difficulty) {
         this.model = new BoardModel(imagePath, difficulty);
@@ -29,6 +30,7 @@ public class BoardController {
         this.keyboardMode = false;
         this.keyboardCol = 0;
         this.keyboardRow = 0;
+        this.moveCount = 0;
         this.setupListeners();
     }
 
@@ -62,8 +64,9 @@ public class BoardController {
         }
     }
     private void checkEnd() {
+        moveCount++;
         if(this.model.endGame()) {
-            System.out.println("end");
+            System.out.println(moveCount);
         }
     }
 
