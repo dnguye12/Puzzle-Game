@@ -1,7 +1,5 @@
 package models;
 
-import views.Menubar;
-
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -19,11 +17,11 @@ public class BoardModel {
     private Image image;
     private ArrayList<Cell> cells;
     private ArrayList<Image> correctImages;
-    private Menubar.Difficulty difficulty;
+    private PopupFormModel.Difficulty difficulty;
     private int cellWidthCount;
     private int cellHeightCount;
 
-    public BoardModel(String path, Menubar.Difficulty difficulty) {
+    public BoardModel(String path, PopupFormModel.Difficulty difficulty) {
         if (!Objects.equals(path, "")) {
             try {
                 this.image = ImageIO.read(new File(path));
@@ -67,6 +65,10 @@ public class BoardModel {
         return cellHeightCount;
     }
 
+    public ArrayList<Image> getCorrectImages() {
+        return correctImages;
+    }
+
     public Dimension getImageSize() {
         if (this.image != null) {
             return new Dimension(this.image.getWidth(null), this.image.getHeight(null));
@@ -75,7 +77,7 @@ public class BoardModel {
         }
     }
 
-    public Menubar.Difficulty getDifficulty() {
+    public PopupFormModel.Difficulty getDifficulty() {
         return difficulty;
     }
 
@@ -91,27 +93,48 @@ public class BoardModel {
         screenSize = new Dimension(screenSize.width - PADDING * 2, screenSize.height - PADDING * 2);
         double ratioImage = 1.0 * imageSize.width / imageSize.height;
         if(imageSize.width > screenSize.width) {
-            this.image = this.image.getScaledInstance(screenSize.width, (int) (screenSize.width / ratioImage), Image.SCALE_SMOOTH);
+            this.image = this.image.getScaledInstance(screenSize.width - 500, (int) ((screenSize.width - 500) / ratioImage), Image.SCALE_SMOOTH);
             imageSize = this.getImageSize();
         }
         if(imageSize.height > screenSize.height) {
             ratioImage = 1.0 * imageSize.width / imageSize.height;
-            this.image = this.image.getScaledInstance((int) (screenSize.height * ratioImage), screenSize.height, Image.SCALE_SMOOTH);
+            this.image = this.image.getScaledInstance((int) ((screenSize.height - 500) * ratioImage), screenSize.height - 500, Image.SCALE_SMOOTH);
             imageSize = this.getImageSize();
         }
         ratioImage = 1.0 * imageSize.width / imageSize.height;
 
         this.cellWidthCount = this.difficulty.getValue();
         this.cellHeightCount = (int) (this.cellWidthCount / ratioImage);
-        int cellWidth = imageSize.width / this.cellWidthCount;
-        int cellHeight = imageSize.height / this.cellHeightCount;
+        int cellWidth, cellHeight;
+        if(this.cellWidthCount > 0) {
+            cellWidth = imageSize.width / this.cellWidthCount;
+        }else {
+            cellWidth = imageSize.width;
+        }
+        if(this.cellHeightCount > 0) {
+            cellHeight = imageSize.height / this.cellHeightCount;
+        }else {
+            cellHeight = imageSize.height;
+        }
         if(cellWidth > cellHeight) {
             cellWidth = cellHeight;
         }else if(cellHeight > cellWidth) {
             cellHeight = cellWidth;
         }
 
-        this.image = this.image.getScaledInstance(cellWidth * this.cellWidthCount, cellHeight * this.cellHeightCount, Image.SCALE_SMOOTH);
+        int scaledImageWidth, scaledImageHeight;
+        if(this.cellWidthCount > 0) {
+            scaledImageWidth = cellWidth * this.cellWidthCount;
+        }else {
+            scaledImageWidth = cellWidth;
+        }
+        if(this.cellHeightCount > 0) {
+            scaledImageHeight = cellHeight * this.cellHeightCount;
+        }else {
+            scaledImageHeight = cellHeight;
+        }
+
+        this.image = this.image.getScaledInstance(scaledImageWidth, scaledImageHeight, Image.SCALE_SMOOTH);
         BufferedImage bufferedImage = this.imageToBufferedImage(this.image);
 
         imageSize = this.getImageSize();

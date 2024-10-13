@@ -95,9 +95,12 @@ public class BoardView extends JComponent {
         }
 
         if (helper != null) {
-            int cellWidth = (int) (helper.getWidth() / difValue);
-            this.innerRadius = cellWidth - 20;
-            this.outerRadius = this.innerRadius + 80;
+            int cellWidth = (int) (width / difValue);
+            this.outerRadius = cellWidth ;
+            if(this.outerRadius > 300) {
+                this.outerRadius = 300;
+            }
+            this.innerRadius = this.outerRadius - 75;
         }
         this.setPreferredSize(new Dimension(width, height));
         this.revalidate();
@@ -134,7 +137,7 @@ public class BoardView extends JComponent {
             posY = PADDING + col * height + col * GAP;
         }
 
-        g2d.setColor(new Color(255,0,0,50));
+        g2d.setColor(new Color(0,0,255,50));
         g2d.fillRect(posX , posY , width, height);
     }
 
@@ -158,6 +161,16 @@ public class BoardView extends JComponent {
 
             g2d.drawImage(cell.getImage(), x, y, null);
             g2d.setTransform(oldTransform);
+
+            if(con.isShowingHelp()) {
+                if(cell.getRotation() == Cell.Rotation.NORTH && cell.getImage() == this.model.getCorrectImages().get(cell.getIdx())) {
+                    g2d.setColor(new Color(0,255,0,50));
+
+                }else {
+                    g2d.setColor(new Color(255,0,0,50));
+                }
+                g2d.fillRect(x, y, imageWidth, imageHeight);
+            }
         }
     }
 
