@@ -13,20 +13,22 @@ import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 
+// The BoardView class is responsible for rendering the game board and its cells, handling animations,
+// and displaying the donut menu used for cell rotation.
 public class BoardView extends JComponent {
-    private final int GAP = 2;
-    private final int PADDING = 50;
+    private final int GAP = 2; // Gap between the cells
+    private final int PADDING = 50; // Padding around the board
     private BoardController con;
     private BoardModel model;
     private Image image;
-    private boolean isShowingDonutMenu;
-    private int hoveredSection;
-    private Point DonutMenuPos;
-    private int innerRadius;
-    private int outerRadius;
-    private final int ARROWLENGTH = 30;
-    private final int ARROWHEAD = 20;
-    private AnimationController animationController;
+    private boolean isShowingDonutMenu; // Flag to indicate if the donut menu is visible
+    private int hoveredSection; // Indicates which section of the donut menu is being hovered
+    private Point DonutMenuPos; // Position of the donut menu on the screen
+    private int innerRadius; // Inner radius of the donut menu
+    private int outerRadius; // Outer radius of the donut menu
+    private final int ARROWLENGTH = 30; // Length of the arrows in the donut menu
+    private final int ARROWHEAD = 20; // Size of the arrowheads in the donut menu
+    private AnimationController animationController; // Reference to the animation controller
 
     public BoardView(BoardController con) {
         this.con = con;
@@ -44,20 +46,23 @@ public class BoardView extends JComponent {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        this.drawBackground(g2d);
+        this.drawBackground(g2d); // Draw the grid background
 
         ArrayList<Cell> cells = this.model.getCells();
 
+        // Loop through the cells and draw them (skipping the cell that is rotating)
         for (Cell cell : cells) {
             if (cell.getIdx() != animationController.getRotatingIdx()) {
                 this.drawCell(g2d, cell);
             }
         }
 
+        // Highlight the cell selected via keyboard, if keyboard mode is active
         if(this.con.isKeyboardMode()) {
             this.drawKeyboardSelection(g2d, cells.get(0));
         }
 
+        // If a cell is being dragged, render it separately
         if (model.getSelectedCell() != null) {
             Cell draggedCell = model.getDraggedCell();
             if (draggedCell != null) {
@@ -65,6 +70,7 @@ public class BoardView extends JComponent {
             }
         }
 
+        // Handle scaling and rotating animations
         int scalingIdx = this.animationController.getScalingIdx();
         int rotatingIdx = this.animationController.getRotatingIdx();
         if (scalingIdx != -1) {
@@ -77,11 +83,13 @@ public class BoardView extends JComponent {
             }
         }
 
+        // Draw the donut menu if it is visible
         if (this.isShowingDonutMenu) {
             this.drawDonutMenu(g2d);
         }
     }
 
+    // Adjust the size of the board view based on the puzzle image size and difficulty level
     private void handleSize() {
         int width = 420;
         int height = 420;
@@ -90,15 +98,16 @@ public class BoardView extends JComponent {
         if (this.image != null) {
             helper = this.model.getImageSize();
 
+            // Calculate the width and height of the board based on the image size and difficulty
             width = (int) (helper.getWidth() + 2 * PADDING + difValue * GAP);
             height = (int) (helper.getHeight() + 2 * PADDING + difValue * GAP);
         }
 
         if (helper != null) {
-            int cellWidth = (int) (width / difValue);
-            this.outerRadius = cellWidth ;
+            int cellWidth = (int) (width / difValue); // Calculate cell width
+            this.outerRadius = cellWidth ; // Set outer radius of the donut menu based on cell width
             if(this.outerRadius > 300) {
-                this.outerRadius = 300;
+                this.outerRadius = 300; // Limit the maximum outer radius
             }
             this.innerRadius = this.outerRadius - 75;
         }
@@ -107,6 +116,7 @@ public class BoardView extends JComponent {
         this.repaint();
     }
 
+    // Draws the background grid lines for the board
     private void drawBackground(Graphics2D g2d) {
         int frameW = this.getWidth();
         int frameH = this.getHeight();
@@ -122,6 +132,7 @@ public class BoardView extends JComponent {
         g2d.drawLine(0, frameH, frameW, frameH);
     }
 
+    // Draw the cell highlighted by keyboard selection (keyboard mode)
     private void drawKeyboardSelection(Graphics2D g2d, Cell helper) {
 
         int width = helper.getImage().getWidth(null);
@@ -130,6 +141,8 @@ public class BoardView extends JComponent {
         int row = con.getKeyboardRow();
         int col = con.getKeyboardCol();
         int posX = PADDING, posY = PADDING;
+
+        // Calculate position of the selected cell
         if(row > 0) {
             posX = PADDING + row * width + row * GAP;
         }
@@ -141,12 +154,14 @@ public class BoardView extends JComponent {
         g2d.fillRect(posX , posY , width, height);
     }
 
+    // Draw a single cell, including its current rotation
     private void drawCell(Graphics2D g2d, Cell cell) {
         if (!cell.isSelected()) {
 
             Cell.Rotation rotation = cell.getRotation();
             AffineTransform oldTransform = g2d.getTransform();
 
+            // Calculate rotation and position for the cell
             double angle = Math.toRadians(rotation.getAngle());
             int x = cell.getPos().x;
             int y = cell.getPos().y;
@@ -155,6 +170,7 @@ public class BoardView extends JComponent {
             int centerX = x + imageWidth / 2;
             int centerY = y + imageHeight / 2;
 
+            // Apply rotation transformation
             AffineTransform transform = new AffineTransform();
             transform.rotate(angle, centerX, centerY);
             g2d.setTransform(transform);
@@ -162,6 +178,7 @@ public class BoardView extends JComponent {
             g2d.drawImage(cell.getImage(), x, y, null);
             g2d.setTransform(oldTransform);
 
+            // If help mode is enabled, color the cell based on its correctness
             if(con.isShowingHelp()) {
                 if(cell.getRotation() == Cell.Rotation.NORTH && cell.getImage() == this.model.getCorrectImages().get(cell.getIdx())) {
                     g2d.setColor(new Color(0,255,0,50));
@@ -174,6 +191,7 @@ public class BoardView extends JComponent {
         }
     }
 
+    // Draw the cell currently being dragged by the user
     private void drawDraggedCell(Graphics2D g2d, Cell cell) {
         AffineTransform old = g2d.getTransform();
         Image img = cell.getImage();
@@ -195,6 +213,7 @@ public class BoardView extends JComponent {
         g2d.setTransform(old);
     }
 
+    //Draw a cell being scaled based on its state of the animation
     private void drawScalingCell(Graphics2D g2d, Cell cell) {
         AffineTransform old = g2d.getTransform();
         Image img = cell.getImage();
@@ -216,6 +235,7 @@ public class BoardView extends JComponent {
         g2d.setTransform(old);
     }
 
+    //Draw a cell being rotated based on its state of the animation
     private void drawRotatingCell(Graphics2D g2d, Cell cell) {
         AffineTransform old = g2d.getTransform();
         Image img = cell.getImage();
@@ -236,31 +256,34 @@ public class BoardView extends JComponent {
         g2d.setTransform(old);
     }
 
+    //Rotate menu drawing
     private void drawDonutMenu(Graphics2D g2d) {
         for (int i = 0; i < 4; i++) {
             this.drawDonutSection(g2d, i);
         }
     }
 
+    // Draw a single section of the donut menu
     private void drawDonutSection(Graphics2D g2d, int section) {
-        double startAngle = 45 + 90 * section + 1;
+        double startAngle = 45 + 90 * section + 1; // Calculate the start angle for the section
         Arc2D.Double arc = new Arc2D.Double(DonutMenuPos.x - this.outerRadius / 2.0, DonutMenuPos.y - this.outerRadius / 2.0, this.outerRadius, this.outerRadius, startAngle, 88, Arc2D.PIE);
         Ellipse2D innerCircle = new Ellipse2D.Double(
                 DonutMenuPos.x - innerRadius / 2.0,
                 DonutMenuPos.y - innerRadius / 2.0,
                 innerRadius, innerRadius);
-        Area area = new Area(arc);
-        area.subtract(new Area(innerCircle));
+        Area area = new Area(arc); // Create an area for the outer section
+        area.subtract(new Area(innerCircle)); // Subtract the inner circle to create a donut shape
 
+        // Highlight the section if it's being hovered
         if (section == hoveredSection) {
-            g2d.setColor(new Color(255, 0, 0, 150));
+            g2d.setColor(new Color(255, 0, 0, 150)); // Red if hovered
         } else {
-            g2d.setColor(new Color(0, 0, 255, 150));
+            g2d.setColor(new Color(0, 0, 255, 150)); // Blue if not hovered
         }
-        g2d.fill(area);
+        g2d.fill(area); // Fill the donut section
 
+        // Draw the rotation arrow for the section
         double angleRad = Math.toRadians(90 * section + 90 / 2.0 + 45);
-
         int endX = (int) (DonutMenuPos.x + (innerRadius / 2 + ARROWLENGTH) * Math.cos(angleRad));
         int endY = (int) (DonutMenuPos.y + (innerRadius / 2 + ARROWLENGTH) * Math.sin(angleRad));
 
@@ -272,7 +295,7 @@ public class BoardView extends JComponent {
                 (int) (endY - ARROWHEAD * Math.sin(angleRad - Math.PI / 6)));
         arrowHead.addPoint((int) (endX - ARROWHEAD * Math.cos(angleRad + Math.PI / 6)),
                 (int) (endY - ARROWHEAD * Math.sin(angleRad + Math.PI / 6)));
-        g2d.fill(arrowHead);
+        g2d.fill(arrowHead); // Draw the arrowhead
     }
 
     public boolean isShowingDonutMenu() {
@@ -296,9 +319,12 @@ public class BoardView extends JComponent {
         double y = p.getY() - DonutMenuPos.y;
         double distance = Math.sqrt(x * x + y * y);
 
+        // Check if the cursor is within the donut menu area
         if (distance < innerRadius / 2.0 || distance > outerRadius / 2.0) {
             return -1;
         }
+
+        // Calculate which section of the donut menu is hovered based on the angle
         double angle = Math.toDegrees(Math.atan2(-y, x)) - 45;
         if (angle < 0) {
             angle += 360;

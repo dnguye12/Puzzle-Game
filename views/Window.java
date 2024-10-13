@@ -75,6 +75,7 @@ public class Window extends JFrame {
         menu = new MenubarController(this.menubarModel, this.menubarView, option, this);
         this.setJMenuBar(this.menubarView);
 
+        this.setResizable(false);
         this.pack();
         this.setLocationRelativeTo(null);
         this.setVisible(true);

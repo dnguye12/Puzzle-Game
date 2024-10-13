@@ -11,20 +11,22 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
+// Controller class to handle interactions and animations on the game board
 public class BoardController {
     private BoardModel model;
     private BoardView view;
     private AnimationController animationController;
-    private Timer timer;
-    private boolean isDragging;
-    private boolean keyboardMode;
-    private int keyboardCol;
-    private int keyboardRow;
-    private int moveCount;
+    private Timer timer; // Timer to control animation events
+    private boolean isDragging; // Flag to check if the player is dragging a cell
+    private boolean keyboardMode; // Flag to check if keyboard controls are active
+    private int keyboardCol; // Current column selected in keyboard mode
+    private int keyboardRow; // Current row selected in keyboard mode
+    private int moveCount; // Counter for the number of moves made
     private OptionsPanelView optionsPanelView;
     private Window window;
-    private boolean isPaused;
-    private boolean isShowingHelp;
+    private boolean isPaused; // Flag to check if the game is paused
+    private boolean isShowingHelp; // Flag to check if help is being shown
+    private boolean isOver;
 
     public BoardController(String imagePath, PopupFormModel.Difficulty difficulty, OptionsPanelView optionsPanelView, Window window) {
         this.model = new BoardModel(imagePath, difficulty);
@@ -43,6 +45,7 @@ public class BoardController {
         this.moveCount = 0;
         this.isPaused = false;
         this.isShowingHelp = false;
+        this.isOver = false;
         this.setupListeners();
     }
 
@@ -86,19 +89,36 @@ public class BoardController {
         this.moveCount = moveCount;
     }
 
+    // Calculates the index of the selected cell in keyboard mode
     public int selectKeyboard() {
         return this.model.getCellWidthCount() * this.keyboardRow + this.keyboardCol;
     }
 
+    // Reset the timer by removing all its action listeners
     private void resetTimer() {
         for (ActionListener listener : timer.getActionListeners()) {
             timer.removeActionListener(listener);
         }
     }
+
+    // Check if the game has ended and show the end game dialog if necessary
     private void checkEnd() {
         moveCount++;
         this.optionsPanelView.updateCounterLabel(moveCount);
         if(this.model.endGame()) {
+            this.isOver = true;
+
+            Cell selectedCell = model.getSelectedCell();
+
+            if(selectedCell != null) {
+                selectedCell.setSelected(false);
+                this.animationController.startScaling(false);
+                this.animationController.setScalingIdx(-1);
+                this.model.setDraggedCell(null);
+                this.model.setSelectedCell(null);
+                this.checkView();
+            }
+
             window.showEndGameDialog(moveCount);
         }
     }
@@ -107,16 +127,21 @@ public class BoardController {
         this.view.revalidate();
         this.view.repaint();
     }
+
+    // Set up event listeners for user input (mouse, keyboard, etc.)
+    //Only listen if the game is not paused and no animation is playing
     private void setupListeners() {
         this.view.addMouseListener(new MouseAdapter() {
-
             @Override
             public void mousePressed(MouseEvent e) {
-                if(!isPaused) {
+                if(!isPaused && !isOver) {
                     Cell selectedCell = model.getSelectedCell();
                     if (!animationController.isAnimating()) {
+
+                        //Left click mouse
                         if (e.getButton() == MouseEvent.BUTTON1) {
                             resetTimer();
+                            //If no cell has been selected, select the cell that is clicked on.
                             if (selectedCell == null) {
                                 Cell helper = model.clickOnCell(e.getPoint());
                                 if (helper != null) {
@@ -135,6 +160,7 @@ public class BoardController {
                                     });
                                 }
                             } else {
+                                //Otherwise, unselect the current selected cell then select the new cell
                                 Cell other = model.clickOnCell(e.getPoint());
                                 if (other != null) {
 
@@ -160,6 +186,7 @@ public class BoardController {
                             timer.start();
                         }
 
+                        //Click on the scroll mouse button will open a menu to select rotation
                         if (e.getButton() == MouseEvent.BUTTON2 && selectedCell != null) {
                             Point helper = selectedCell.getPos();
                             helper = new Point(helper);
@@ -170,6 +197,7 @@ public class BoardController {
                             checkView();
                         }
 
+                        //If you already selected a cell, right click another cell will swap their places
                         if (e.getButton() == MouseEvent.BUTTON3 && selectedCell != null) {
                             Cell other = model.clickOnCell(e.getPoint());
                             if (other != null) {
@@ -219,8 +247,9 @@ public class BoardController {
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                if (!isPaused) {
+                if (!isPaused && !isOver) {
                     if (!animationController.isAnimating()) {
+                        //Drag and drop a cell onto another cell will replace their positions.
                         if (e.getButton() == MouseEvent.BUTTON1) {
                             if (isDragging) {
                                 resetTimer();
@@ -243,6 +272,7 @@ public class BoardController {
                             }
                         }
                     }
+                    //Close the rotation menu when drag and drop happens
                     if (e.getButton() != MouseEvent.BUTTON2) {
                         if (view.isShowingDonutMenu()) {
                             view.setShowingDonutMenu(false);
@@ -256,7 +286,8 @@ public class BoardController {
         this.view.addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                if(!isPaused) {
+                //Move the dragged cell along the mouse cursor.
+                if(!isPaused && !isOver) {
                     if (!animationController.isAnimating() && SwingUtilities.isLeftMouseButton(e)) {
                         Point helper = e.getPoint();
                         resetTimer();
@@ -283,7 +314,8 @@ public class BoardController {
 
             @Override
             public void mouseMoved(MouseEvent e) {
-                if (!isPaused) {
+                if (!isPaused && !isOver) {
+                    //Handling selecting rotation in the rotation menu
                     if (view.isShowingDonutMenu()) {
                         int helper = view.getHoveredDonutSection(e.getPoint());
                         view.setHoveredSection(helper);
@@ -304,6 +336,7 @@ public class BoardController {
         this.view.addMouseWheelListener(new MouseWheelListener() {
             @Override
             public void mouseWheelMoved(MouseWheelEvent e) {
+                //Move the scroll wheel to do rotation. Rotate left or right depends on the scroll direction.
                 if(!isPaused) {
                     if (!isDragging && !animationController.isAnimating()) {
                         Cell selectedCell = model.getSelectedCell();
@@ -345,15 +378,18 @@ public class BoardController {
             }
         });
 
+        //Keyboard controller
         this.view.addKeyListener(new KeyListener() {
             @Override
             public void keyReleased(KeyEvent e) {
                 if(!isPaused) {
+                    //Spacebar to toggle keyboard mode
                     if (e.getKeyCode() == KeyEvent.VK_SPACE) {
                         keyboardMode = !keyboardMode;
                     }
 
                     if (keyboardMode) {
+                        //Arrow key to move the cursor.
                         if (e.getKeyCode() == KeyEvent.VK_UP) {
                             if (keyboardCol > 0) {
                                 keyboardCol--;
@@ -374,6 +410,7 @@ public class BoardController {
                                 keyboardRow++;
                             }
                         }
+                        //Enter to select, or swap positions with another cell.
                         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                             if (!animationController.isAnimating()) {
                                 int idx = selectKeyboard();
@@ -434,6 +471,7 @@ public class BoardController {
                                 timer.start();
                             }
                         }
+                        //E to rotate left and Q/A to rotate right. (depends on the keyboard)
                         if (e.getKeyCode() == KeyEvent.VK_E) {
                             if (!animationController.isAnimating()) {
                                 int idx = selectKeyboard();

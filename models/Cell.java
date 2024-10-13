@@ -3,14 +3,16 @@ package models;
 import java.awt.*;
 import java.util.Random;
 
+// Represents a single cell in the puzzle, including its position, rotation, and image
 public class Cell {
+    // Enum to define the possible rotation angles for the cell
     public enum Rotation {
         NORTH(0),
         EAST(90),
         SOUTH(180),
         WEST(270);
 
-        private int angle;
+        private int angle; // The angle associated with the rotation (in degree)
 
         Rotation(int angle) {
             this.angle = angle;
@@ -20,12 +22,14 @@ public class Cell {
             return this.angle;
         }
 
+        // Method to randomly pick a rotation value
         public static Rotation getRandom() {
             Rotation[] helper = Rotation.values();
             int pick = new Random().nextInt(helper.length);
             return helper[pick];
         }
 
+        // Method to get the next rotation in the clockwise direction
         public Rotation next() {
             switch (this) {
                 case NORTH -> {
@@ -44,6 +48,7 @@ public class Cell {
             return this;
         }
 
+        // Method to get the previous rotation in the counterclockwise direction
         public Rotation back() {
             switch (this) {
                 case NORTH -> {
@@ -62,6 +67,7 @@ public class Cell {
             return this;
         }
 
+        // Method to convert an integer (0-3) to the corresponding Rotation
         public static Rotation intToRotation(int n) {
             switch(n) {
                 case 0 -> {
@@ -81,12 +87,12 @@ public class Cell {
         }
     }
 
-    private int idx;
-    private Point pos;
-    private Rotation rotation;
+    private int idx; // Index of the cell in the grid
+    private Point pos; // Position of the cell on the board
+    private Rotation rotation; // Current rotation of the cell
     private Image image;
-    private boolean isSelected;
-    private boolean isDragged;
+    private boolean isSelected; // Flag to indicate if the cell is selected
+    private boolean isDragged; // Flag to indicate if the cell is being dragged
 
     public Cell(int idx, Point pos, Image image) {
         this.idx = idx;
@@ -97,6 +103,7 @@ public class Cell {
         this.isDragged = false;
     }
 
+    // Deep copy constructor to create a new cell as a copy of another cell
     public Cell(Cell other) {
         this.idx = other.idx;
         this.pos = other.pos;
