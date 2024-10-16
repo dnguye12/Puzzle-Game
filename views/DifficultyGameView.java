@@ -1,6 +1,7 @@
 package views;
 
 import models.DifficultyGameModel;
+import models.PopupFormModel;
 
 import java.awt.*;
 import javax.swing.*;
@@ -22,8 +23,7 @@ public class DifficultyGameView extends JComponent {
         
         for (int i = 0; i < model.getDifficultyBoxes().size(); i++) {
             Rectangle box = model.getDifficultyBoxes().get(i);
-
-            if (model.getDifficultyOptions()[i].equals(model.getSelectedDifficulty())) {
+            if (PopupFormModel.Difficulty.fromString(model.getDifficultyOptions()[i]).equals(model.getSelectedDifficulty())) {
                 g.setColor(Color.GREEN);
             } else {
                 g.setColor(Color.LIGHT_GRAY);

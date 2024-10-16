@@ -1,10 +1,12 @@
 package models;
 
+import controllers.DifficultyGameController;
+
 import java.awt.*;
 import java.util.*;
 
 public class DifficultyGameModel {
-	
+	private DifficultyGameController con;
 	private static final int BOX_SIZE = 60;
     private static final int CHAR_SIZE = 20;
     private static final int INITIAL_X = 50;
@@ -62,6 +64,7 @@ public class DifficultyGameModel {
         for (int i = 0; i < difficultyBoxes.size(); i++) {
             if (characterRect.intersects(difficultyBoxes.get(i))) {
                 selectedDifficulty = PopupFormModel.Difficulty.fromString(difficultyOptions[i]);
+                con.getView().repaint();
                 break;
             }
         }
@@ -127,7 +130,9 @@ public class DifficultyGameModel {
 		return jumpOffset;
 	}
     
-    
+    public void setDifficultyGameController(DifficultyGameController con) {
+        this.con = con;
+    }
     
     
 

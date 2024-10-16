@@ -17,6 +17,7 @@ public class DifficultyGameController {
     public DifficultyGameController(DifficultyGameModel model, DifficultyGameView view) {
         this.model = model;
         this.view = view;
+        this.model.setDifficultyGameController(this);
         
         view.addKeyListener(new KeyAdapter() {
             @Override
@@ -101,5 +102,9 @@ public class DifficultyGameController {
             difficultyBoxes.add(new Rectangle(x, y, boxSize, boxSize));
         }
         return difficultyBoxes;
+    }
+
+    public DifficultyGameView getView() {
+        return view;
     }
 }
