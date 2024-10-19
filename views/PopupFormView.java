@@ -40,7 +40,7 @@ public class PopupFormView extends JDialog {
         inputPanel.add(new JLabel("Difficulty:"));
         String[] difficulties = {"Easy", "Medium", "Hard", "Custom"};
         difficultyComboBox = new JComboBox<>(difficulties);
-        difficultyComboBox.setSelectedItem(model.getDifficulty());
+        difficultyComboBox.setSelectedItem(model.getDifficulty().toString());
         inputPanel.add(difficultyComboBox);
 
         customDifficultyLabel = new JLabel("Custom Difficulty:");
@@ -52,9 +52,10 @@ public class PopupFormView extends JDialog {
         inputPanel.add(customDifficultyLabel);
 
         customDifficultyField = new JTextField(model.getDifficulty().getValue());
+        ((AbstractDocument) customDifficultyField.getDocument()).setDocumentFilter(new NumericDocumentFilter());
         if (model.getDifficulty() == PopupFormModel.Difficulty.CUSTOM) {
-            ((AbstractDocument) customDifficultyField.getDocument()).setDocumentFilter(new NumericDocumentFilter());
             customDifficultyField.setVisible(true);
+            customDifficultyField.setText("" + model.getDifficulty().getValue());
         }else {
             customDifficultyField.setVisible(false);
         }
@@ -162,27 +163,35 @@ public class PopupFormView extends JDialog {
     }
 
     class NumericDocumentFilter extends DocumentFilter {
+        private static final int MAX_VALUE = 16;
+
         @Override
         public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
-            if (isNumeric(string)) {
+            String currentText = fb.getDocument().getText(0, fb.getDocument().getLength());
+            String newText = new StringBuilder(currentText).insert(offset, string).toString();
+            if (isValid(newText)) {
                 super.insertString(fb, offset, string, attr);
             }
         }
 
         @Override
         public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
-            if (isNumeric(text)) {
+            String currentText = fb.getDocument().getText(0, fb.getDocument().getLength());
+            String newText = new StringBuilder(currentText).replace(offset, offset + length, text).toString();
+            if (isValid(newText)) {
                 super.replace(fb, offset, length, text, attrs);
             }
         }
 
-        @Override
-        public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
-            super.remove(fb, offset, length);
-        }
-
-        private boolean isNumeric(String text) {
-            return text.matches("\\d*");
+        private boolean isValid(String text) {
+            if (text.isEmpty()) {
+                return true; // Allow empty field for user flexibility
+            }
+            if (text.matches("\\d+")) {
+                int value = Integer.parseInt(text);
+                return value <= MAX_VALUE;
+            }
+            return false; // Reject non-numeric input
         }
     }
 }

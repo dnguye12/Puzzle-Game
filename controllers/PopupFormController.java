@@ -113,7 +113,11 @@ public class PopupFormController {
         PopupFormModel.Difficulty difficulty = PopupFormModel.Difficulty.fromString((String) view.getDifficultyComboBox().getSelectedItem());
         model.setDifficulty(difficulty);
         if (difficulty == PopupFormModel.Difficulty.CUSTOM) {
-            difficulty.setValue(Integer.parseInt(view.getCustomDifficultyField().getText()));
+            try {
+                difficulty.setValue(Integer.parseInt(view.getCustomDifficultyField().getText()));
+            }catch (Exception e) {
+                model.setDifficulty(PopupFormModel.Difficulty.MEDIUM);
+            }
         }
 
         view.dispose();

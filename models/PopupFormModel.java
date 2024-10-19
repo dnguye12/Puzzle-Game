@@ -6,7 +6,7 @@ import java.util.Objects;
 
 public class PopupFormModel {
     public enum Difficulty {
-        EASY(5), MEDIUM(2), HARD(9), CUSTOM(0);
+        EASY(5), MEDIUM(7), HARD(9), CUSTOM(0);
 
         private int value;
 
@@ -32,6 +32,16 @@ public class PopupFormModel {
             }
             return CUSTOM;
         }
+        @Override
+        public String toString() {
+            return switch (this) {
+                case EASY -> "Easy";
+                case MEDIUM -> "Medium";
+                case HARD -> "Hard";
+                case CUSTOM -> "Custom";
+                default -> "";
+            };
+        }
     }
     private String selectedImagePath;
     private String playerName;
@@ -42,6 +52,7 @@ public class PopupFormModel {
         this.selectedImagePath = selectedImagePath;
         this.playerName = playerName;
         this.difficulty = difficulty;
+        System.out.println(this.difficulty);
         this.optionsPanelController = optionsPanelController;
     }
 

@@ -110,6 +110,10 @@ public class BoardView extends JComponent {
                 this.outerRadius = 300; // Limit the maximum outer radius
             }
             this.innerRadius = this.outerRadius - 75;
+            if(this.innerRadius < 100) {
+                this.innerRadius = 100;
+                this.outerRadius = this.innerRadius + 75;
+            }
         }
         this.setPreferredSize(new Dimension(width, height));
         this.revalidate();
