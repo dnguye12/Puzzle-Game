@@ -52,7 +52,7 @@ public class PopupFormView extends JDialog {
         inputPanel.add(customDifficultyLabel);
 
         customDifficultyField = new JTextField(model.getDifficulty().getValue());
-        ((AbstractDocument) customDifficultyField.getDocument()).setDocumentFilter(new NumericDocumentFilter());
+        //((AbstractDocument) customDifficultyField.getDocument()).setDocumentFilter(new NumericDocumentFilter());
         if (model.getDifficulty() == PopupFormModel.Difficulty.CUSTOM) {
             customDifficultyField.setVisible(true);
             customDifficultyField.setText("" + model.getDifficulty().getValue());

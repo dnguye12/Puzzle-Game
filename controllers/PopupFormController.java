@@ -63,44 +63,61 @@ public class PopupFormController {
     }
 
     private void handleStartGame() {
-        String playerName = view.getPlayerNameField().getText();
-        PopupFormModel.Difficulty difficulty = PopupFormModel.Difficulty.fromString((String) view.getDifficultyComboBox().getSelectedItem());
+        String playerName = view.getPlayerNameField().getText().trim();
+        PopupFormModel.Difficulty difficulty = PopupFormModel.Difficulty.fromString(
+                (String) view.getDifficultyComboBox().getSelectedItem());
         int customDifficulty = -1;
         String helper = "";
-        if (difficulty == PopupFormModel.Difficulty.CUSTOM) {
-            helper = view.getCustomDifficultyField().getText();
-            if (!Objects.equals(helper, "")) {
-                customDifficulty = Integer.parseInt(helper);
-                difficulty.setValue(customDifficulty);
-            }
-        }
-
-        model.setPlayerName(playerName);
-        model.setDifficulty(difficulty);
 
         boolean canStart = true;
-        if (model.getDifficulty() == PopupFormModel.Difficulty.CUSTOM) {
+
+        // Validate player name
+        if (playerName.isEmpty()) {
+            JOptionPane.showMessageDialog(view, "Please enter a player name!", "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            canStart = false;
+        }
+
+        // Validate custom difficulty if selected
+        if (difficulty == PopupFormModel.Difficulty.CUSTOM) {
+            helper = view.getCustomDifficultyField().getText().trim();
             if (helper.equals("")) {
-                JOptionPane.showMessageDialog(view, "Please enter a custom difficulty !", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(view, "Please enter a custom difficulty!", "Error",
+                        JOptionPane.ERROR_MESSAGE);
                 canStart = false;
             } else {
-                if (customDifficulty <= 0) {
-                    JOptionPane.showMessageDialog(view, "Custom difficulty cannot be 0 !", "Error", JOptionPane.ERROR_MESSAGE);
+                try {
+                    customDifficulty = Integer.parseInt(helper);
+                    if (customDifficulty <= 0) {
+                        JOptionPane.showMessageDialog(view,
+                                "Custom difficulty must be a positive number!", "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                        canStart = false;
+                    } else if (customDifficulty > 16) {
+                        JOptionPane.showMessageDialog(view,
+                                "Custom difficulty cannot be greater than 16!", "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                        canStart = false;
+                    } else {
+                        // Valid custom difficulty; set the value
+                        difficulty.setValue(customDifficulty);
+                    }
+                } catch (NumberFormatException e) {
+                    JOptionPane.showMessageDialog(view,
+                            "Please enter a valid number for custom difficulty!", "Error",
+                            JOptionPane.ERROR_MESSAGE);
                     canStart = false;
-                }else {
-                    canStart = true;
                 }
             }
         }
-        if (model.getPlayerName().isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Please enter a player name!", "Error", JOptionPane.ERROR_MESSAGE);
-            canStart = false;
-        }else {
-            canStart = true;
-        }
 
-        if(canStart) {
-            System.out.println("Starting game for " + playerName + " with difficulty " + difficulty + " and image: " + model.getSelectedImagePath());
+        // Proceed if all validations pass
+        if (canStart) {
+            model.setPlayerName(playerName);
+            model.setDifficulty(difficulty);
+
+            System.out.println("Starting game for " + playerName + " with difficulty " + difficulty
+                    + " and image: " + model.getSelectedImagePath());
             model.getOptionsPanelController().startGame(playerName);
             view.close();
             window.initBoardController(model.getSelectedImagePath(), difficulty);
