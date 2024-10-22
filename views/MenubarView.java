@@ -9,6 +9,7 @@ public class MenubarView extends JMenuBar {
     private JButton quitButton;
 
     public MenubarView() {
+        // Buttons creation
         newGameButton = new JButton("New Game");
         quitButton = new JButton("Quit");
 
@@ -19,6 +20,7 @@ public class MenubarView extends JMenuBar {
         this.add(quitButton);
     }
 
+    // Buttons getter
     public JButton getNewGameButton() {
         return newGameButton;
     }

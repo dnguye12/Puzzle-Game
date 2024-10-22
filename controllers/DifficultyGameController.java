@@ -18,7 +18,8 @@ public class DifficultyGameController {
         this.model = model;
         this.view = view;
         this.model.setDifficultyGameController(this);
-        
+
+        // Key listener to move to red square
         view.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -47,7 +48,8 @@ public class DifficultyGameController {
             }
         });
         jumpTimer.start();
-        
+
+        // Click listener to select to red square
         view.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -90,6 +92,7 @@ public class DifficultyGameController {
         });
     }
 
+    // Create Difficulty boxes
     private static ArrayList<Rectangle> createDifficultyBoxes(int width) {
         ArrayList<Rectangle> difficultyBoxes = new ArrayList<>();
         int boxSize = 60;

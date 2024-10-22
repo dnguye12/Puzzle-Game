@@ -32,6 +32,7 @@ public class PopupFormFunView extends JDialog {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.weightx = 1.0;
 
+        // Input PlayerName
         JPanel inputPanel = new JPanel(new GridBagLayout());
 
         playerNameLabel = new JLabel("Player Name: " + model.getPlayerName(), SwingConstants.CENTER);
@@ -77,7 +78,8 @@ public class PopupFormFunView extends JDialog {
         gbc.gridy = 3;
         gbc.weightx = 1.0;
         gbc.anchor = GridBagConstraints.CENTER;
-        
+
+        // Input difficulty
         model.getGameController().setDifficultyBoxes(model.createDifficultyBoxes(model.getGameView().getWidth()));
         
         inputPanel.add(model.getGameView(), gbc);
@@ -96,6 +98,7 @@ public class PopupFormFunView extends JDialog {
         centerPanel.add(inputPanel);
         add(centerPanel, BorderLayout.NORTH);
 
+        // Buttons panel
         JPanel buttonPanel = new JPanel(new BorderLayout());
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 

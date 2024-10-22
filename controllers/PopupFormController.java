@@ -29,6 +29,7 @@ public class PopupFormController {
     }
 
     private void initController() {
+        // Change difficulty with the combobox
         view.getDifficultyComboBox().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -36,6 +37,7 @@ public class PopupFormController {
             }
         });
 
+        // Action listener to start the game
         view.getStartGameButton().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -43,6 +45,7 @@ public class PopupFormController {
             }
         });
 
+        // Switch to fun form
         view.getFunButton().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -51,6 +54,7 @@ public class PopupFormController {
         });
     }
 
+    // Change the difficulty
     private void handleDifficultyChange() {
         String selectedDifficulty = (String) view.getDifficultyComboBox().getSelectedItem();
         if ("Custom".equals(selectedDifficulty)) {
@@ -62,6 +66,7 @@ public class PopupFormController {
         }
     }
 
+    // Start the game
     private void handleStartGame() {
         String playerName = view.getPlayerNameField().getText().trim();
         PopupFormModel.Difficulty difficulty = PopupFormModel.Difficulty.fromString(
@@ -124,6 +129,7 @@ public class PopupFormController {
         }
     }
 
+    // Switch to fun form
     private void handleFunButton() {
         model.setPlayerName(view.getPlayerNameField().getText());
 
@@ -144,6 +150,7 @@ public class PopupFormController {
         popupFormFunController.showPopup();
     }
 
+    // Show the popup form
     public void showPopup() {
         view.display();
     }

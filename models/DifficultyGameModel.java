@@ -6,8 +6,10 @@ import java.awt.*;
 import java.util.*;
 
 public class DifficultyGameModel {
-	private DifficultyGameController con;
-	private static final int BOX_SIZE = 60;
+    private DifficultyGameController con;
+
+    // Constant variables that is use to initiate the game
+    private static final int BOX_SIZE = 60;
     private static final int CHAR_SIZE = 20;
     private static final int INITIAL_X = 50;
     private static final int INITIAL_Y = 90;
@@ -25,12 +27,13 @@ public class DifficultyGameModel {
 
     private boolean canMove = false;
     private boolean isCharacterClicked = false;
-    
+
     public DifficultyGameModel(PopupFormModel.Difficulty defaultDifficulty) {
-    	this.selectedDifficulty = defaultDifficulty;
+        this.selectedDifficulty = defaultDifficulty;
         this.difficultyBoxes = new ArrayList<>();
     }
-    
+
+    // Functions to move
     public void moveLeft() {
         characterX -= MOVE_SPEED;
     }
@@ -58,7 +61,8 @@ public class DifficultyGameModel {
             }
         }
     }
-    
+
+    // Function that is check if the red square is overlapping a difficulty boxes
     public void checkCollision() {
         Rectangle characterRect = new Rectangle(characterX, characterY - jumpOffset, CHAR_SIZE, CHAR_SIZE);
         for (int i = 0; i < difficultyBoxes.size(); i++) {
@@ -69,19 +73,21 @@ public class DifficultyGameModel {
             }
         }
     }
-    
+
+    // DifficultyBoxes getter and setter
     public ArrayList<Rectangle> getDifficultyBoxes() {
         return this.difficultyBoxes;
     }
-    
+
     public void setDifficultyBoxes(ArrayList<Rectangle> boxes) {
         this.difficultyBoxes = boxes;
     }
-    
+
     public void addDifficultyBoxes(Rectangle box) {
         this.difficultyBoxes.add(box);
     }
 
+    // Character getter
     public int getCharacterX() {
         return characterX;
     }
@@ -90,50 +96,59 @@ public class DifficultyGameModel {
         return characterY - jumpOffset;
     }
 
+    // Character size getter
     public int getCharSize() {
         return CHAR_SIZE;
     }
-    
+
+    // Box size getter
     public int getBoxSize() {
         return BOX_SIZE;
     }
-    
+
+    // CanMove boolean getter and setter
     public boolean getCanMove() {
         return canMove;
     }
-    
+
     public void setCanMove(boolean b) {
-    	canMove = b;
+        canMove = b;
     }
-    
+
+    // IsJumping boolean getter
     public boolean getIsJumping() {
         return isJumping;
     }
-    
+
+    // isCharacterClicked boolean getter and setter
     public boolean getIsCharacterClicked() {
         return isCharacterClicked;
     }
-    
+
     public void setIsCharacterClicked(boolean b) {
         isCharacterClicked = b;
     }
 
+    // SelectedDifficulty getter
     public PopupFormModel.Difficulty getSelectedDifficulty() {
         return selectedDifficulty;
     }
 
+    // DifficultyOptions getter
     public String[] getDifficultyOptions() {
         return difficultyOptions;
     }
 
-	public int getJumpOffset() {
-		return jumpOffset;
-	}
-    
+    // JumpOffset integer getter
+    public int getJumpOffset() {
+        return jumpOffset;
+    }
+
+    // DifficultyGameController setter
     public void setDifficultyGameController(DifficultyGameController con) {
         this.con = con;
     }
-    
-    
+
+
 
 }

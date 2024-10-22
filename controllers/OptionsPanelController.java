@@ -19,6 +19,7 @@ public class OptionsPanelController {
         this.model = model;
         this.view = view;
 
+        // Switch the state of the play/pause button
         view.getPausePlayButton().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -26,6 +27,7 @@ public class OptionsPanelController {
             }
         });
 
+        // Switch the state of the help button
         view.getHelpButton().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -40,6 +42,7 @@ public class OptionsPanelController {
         this.boardController = boardController;
     }
 
+    // Function that switch play/pause state
     private void togglePausePlay() {
         if (model.getIsPaused()) {
             view.setPauseIcon();
@@ -52,6 +55,7 @@ public class OptionsPanelController {
         this.boardController.setPaused(model.getIsPaused());
     }
 
+    // Activate help
     private void toggleHelp() {
         model.toggleHelp();
         view.toggleHelpButtonColor(model.getIsHelp());
@@ -59,6 +63,7 @@ public class OptionsPanelController {
         this.boardController.checkView();
     }
 
+    // Function that initiate the timer
     private void initTimer() {
         timer = new Timer(1000, new ActionListener() {
             @Override
@@ -72,6 +77,7 @@ public class OptionsPanelController {
         });
     }
 
+    // Function that start the game
     public void startGame(String playerName) {
         view.setPlayerName(playerName);
         model.setIsPaused(false);
@@ -81,21 +87,25 @@ public class OptionsPanelController {
         startTimer();
     }
 
+    // Function that start the timer
     private void startTimer() {
         timer.start();
     }
 
+    // Function that reste the timer when a new game is create
     private void resetTimer() {
         model.setElapsedTime(0);
         view.updateTimerLabel("00:00");
     }
 
+    // Function that stop the timer
     private void stopTimer() {
         if (timer != null) {
             timer.stop();
         }
     }
 
+    // View getter
     public OptionsPanelView getView() {
         return view;
     }

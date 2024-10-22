@@ -20,6 +20,7 @@ public class OptionsPanelView extends JPanel {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
+        // Label playerName creation
         playerNameLabel = new JLabel("PlayerName");
         playerNameLabel.setFont(new Font("Arial", Font.BOLD, 20));
         gbc.gridx = 0;
@@ -27,6 +28,7 @@ public class OptionsPanelView extends JPanel {
         gbc.anchor = GridBagConstraints.WEST;
         topPanel.add(playerNameLabel, gbc);
 
+        // Button Panel
         JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
         pausePlayButton = new JButton();
@@ -45,6 +47,7 @@ public class OptionsPanelView extends JPanel {
 
         add(topPanel, BorderLayout.NORTH);
 
+        // Counter and timer panel
         JPanel centerPanel = new JPanel(new GridBagLayout());
         gbc = new GridBagConstraints();
         gbc.gridx = 0;

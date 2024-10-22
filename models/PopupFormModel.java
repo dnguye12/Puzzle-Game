@@ -56,10 +56,12 @@ public class PopupFormModel {
         this.optionsPanelController = optionsPanelController;
     }
 
+    // SelectedImagePath getter
     public String getSelectedImagePath() {
         return selectedImagePath;
     }
 
+    // PlayerName getter and setter
     public String getPlayerName() {
         return playerName;
     }
@@ -68,6 +70,7 @@ public class PopupFormModel {
         this.playerName = playerName;
     }
 
+    // Difficulty getter and setter
     public Difficulty getDifficulty() {
         return difficulty;
     }
@@ -76,6 +79,7 @@ public class PopupFormModel {
         this.difficulty = difficulty;
     }
 
+    // OptionsPanel getter
     public OptionsPanelController getOptionsPanelController() {
         return optionsPanelController;
     }

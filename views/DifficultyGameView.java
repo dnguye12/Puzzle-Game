@@ -20,7 +20,7 @@ public class DifficultyGameView extends JComponent {
 	@Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        
+        // Creation of boxes
         for (int i = 0; i < model.getDifficultyBoxes().size(); i++) {
             Rectangle box = model.getDifficultyBoxes().get(i);
             if (PopupFormModel.Difficulty.fromString(model.getDifficultyOptions()[i]).equals(model.getSelectedDifficulty())) {
@@ -43,6 +43,7 @@ public class DifficultyGameView extends JComponent {
                 box.y + (model.getBoxSize() + textHeight) / 2 - 5);
         }
 
+        // Change color if square selected
         if (model.getIsCharacterClicked()) {
             g.setColor(Color.RED);
         } else {

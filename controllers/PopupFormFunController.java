@@ -28,6 +28,7 @@ public class PopupFormFunController {
     }
     
     private void initController() {
+        // Action listener to validate the addition of a letter
     	view.getValidateButton().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -44,6 +45,7 @@ public class PopupFormFunController {
             }
         });
 
+        // Action listener to remove a letter form the name
     	view.getRemoveButton().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -53,7 +55,8 @@ public class PopupFormFunController {
                 }
             }
         });
-        
+
+        // Action listener to switch to lower case letters
         view.getLowercaseButton().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -61,7 +64,8 @@ public class PopupFormFunController {
                 view.updateSliderLabels(view.getLetterSlider());
             }
         });
-        
+
+        // Action listener to switch to upper case letters
         view.getUppercaseButton().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -70,6 +74,7 @@ public class PopupFormFunController {
             }
         });
 
+        // Action listener for custom difficulty counter
         view.getCounterButton().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -91,7 +96,8 @@ public class PopupFormFunController {
             }
         });
         difficultyChecker.start();
-        
+
+        // Action listener to switch to the normal popup form
         view.getNotFunButton().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -108,7 +114,8 @@ public class PopupFormFunController {
                 popupFormController.showPopup();
             }
         });
-        
+
+        // ACtion listener to run the game
         view.getStartGameButton().addActionListener(new ActionListener() {            
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -150,10 +157,12 @@ public class PopupFormFunController {
         });
     }
 
+    // Function that show the popup
     public void showPopup() {
         view.display();
     }
 
+    // Function that close the popup
     public void close() {
         view.close();
     }

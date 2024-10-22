@@ -37,6 +37,7 @@ public class MenubarController {
         });
     }
 
+    // Function that open the file chooser
     private void openFileChooser() {
         JFileChooser fileChooser = new JFileChooser("src/gameImages");
         fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Image files", "jpg", "png", "gif", "jpeg"));
